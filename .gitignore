@@ -1,0 +1,27 @@
+# Скомпилированные файлы
+*.o
+*.obj
+*.exe
+*.out
+*.app
+
+# Папки сборки
+build/
+cmake-build-*/
+Debug/
+Release/
+x64/
+x86/
+
+# Файлы IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Локальные конфигурации
+cmake_install.cmake
+CMakeCache.txt
+Makefile
+CMakeFiles/
