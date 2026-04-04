@@ -598,7 +598,7 @@ int main() {
     while ( true ) {
         std::cout << "\n";
         std::cout << " |===========================================|\n";
-        std::cout << " |        Лабораторная работа №2             |\n";
+        std::cout << " |           Лабораторная работа №2          |\n";
         std::cout << " |===========================================|\n";
         std::cout << " |  1. ArraySequence<int>                    |\n";
         std::cout << " |  2. ListSequence<int>                     |\n";
