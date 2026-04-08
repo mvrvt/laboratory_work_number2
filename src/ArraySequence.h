@@ -9,8 +9,10 @@ template <class T> class MutableArraySequence;
 template <class T>
 class ArraySequence : public Sequence<T> {
 protected:
-    DynamicArray<T>* items_;
+    DynamicArray<T>* items_; //TODO здесь хранить size_ последовательности,
 
+    //TODO у ар сек есть свой сайз, который является
+    //TODO у dyn arr есть только size
     // Ключевой метод паттерна mutable/immutable
     // Mutable вернёт this, Immutable вернёт Clone()
     virtual ArraySequence<T>* Instance() = 0;

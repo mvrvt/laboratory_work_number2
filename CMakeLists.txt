@@ -13,8 +13,8 @@ FetchContent_MakeAvailable( googletest )
 
 # Основная программа
 add_executable( lab_work_number2
-        main.cpp
-)
+        main.cpp )
+
 target_include_directories( lab_work_number2 PRIVATE src )
 
 # Тесты

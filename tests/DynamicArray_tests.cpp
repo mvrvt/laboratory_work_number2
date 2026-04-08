@@ -235,54 +235,54 @@ TEST(DynamicArrayTemplate, WorksWithString) {
     EXPECT_EQ(arr.Get(1), "world");
 }
 
-TEST(DynamicArrayIterator, RangeBasedFor_IteratesOverAllElements) {
-    int items[] = {10, 20, 30, 40};
-    DynamicArray<int> arr(items, 4);
-
-    std::vector<int> result;
-    for (int val : arr) {
-        result.push_back(val);
-    }
-
-    EXPECT_EQ(result.size(), 4);
-    EXPECT_EQ(result[0], 10);
-    EXPECT_EQ(result[1], 20);
-    EXPECT_EQ(result[2], 30);
-    EXPECT_EQ(result[3], 40);
-}
-
-TEST(DynamicArrayIterator, EmptyArray_IterationDoesNothing) {
-    DynamicArray<int> arr(0);
-
-    int count = 0;
-    for (int val : arr) {
-        (void)val;
-        ++count;
-    }
-    EXPECT_EQ(count, 0);
-}
-
-TEST(DynamicArrayIterator, ConstIterator_DoesNotModify) {
-    int items[] = {1, 2, 3};
-    const DynamicArray<int> arr(items, 3);
-
-    std::vector<int> result;
-    for (const int& val : arr) {  // const reference
-        result.push_back(val);
-    }
-    EXPECT_EQ(result.size(), 3);
-}
-
-TEST(DynamicArrayIterator, ManualIteratorUsage) {
-    int items[] = {5, 6, 7};
-    DynamicArray<int> arr(items, 3);
-
-    auto it = arr.begin();
-    EXPECT_EQ(*it, 5);
-    ++it;
-    EXPECT_EQ(*it, 6);
-    ++it;
-    EXPECT_EQ(*it, 7);
-    ++it;
-    EXPECT_EQ(it, arr.end());
-}
+// TEST(DynamicArrayIterator, RangeBasedFor_IteratesOverAllElements) {
+//     int items[] = {10, 20, 30, 40};
+//     DynamicArray<int> arr(items, 4);
+//
+//     std::vector<int> result;
+//     for (int val : arr) {
+//         result.push_back(val);
+//     }
+//
+//     EXPECT_EQ(result.size(), 4);
+//     EXPECT_EQ(result[0], 10);
+//     EXPECT_EQ(result[1], 20);
+//     EXPECT_EQ(result[2], 30);
+//     EXPECT_EQ(result[3], 40);
+// }
+//
+// TEST(DynamicArrayIterator, EmptyArray_IterationDoesNothing) {
+//     DynamicArray<int> arr(0);
+//
+//     int count = 0;
+//     for (int val : arr) {
+//         (void)val;
+//         ++count;
+//     }
+//     EXPECT_EQ(count, 0);
+// }
+//
+// TEST(DynamicArrayIterator, ConstIterator_DoesNotModify) {
+//     int items[] = {1, 2, 3};
+//     const DynamicArray<int> arr(items, 3);
+//
+//     std::vector<int> result;
+//     for (const int& val : arr) {  // const reference
+//         result.push_back(val);
+//     }
+//     EXPECT_EQ(result.size(), 3);
+// }
+//
+// TEST(DynamicArrayIterator, ManualIteratorUsage) {
+//     int items[] = {5, 6, 7};
+//     DynamicArray<int> arr(items, 3);
+//
+//     auto it = arr.begin();
+//     EXPECT_EQ(*it, 5);
+//     ++it;
+//     EXPECT_EQ(*it, 6);
+//     ++it;
+//     EXPECT_EQ(*it, 7);
+//     ++it;
+//     EXPECT_EQ(it, arr.end());
+// }

@@ -10,7 +10,7 @@ TEST(MapTests, Map_MultiplyByTwo) {
     int data[] = {1, 2, 3, 4};
     MutableArraySequence<int> seq(data, 4);
 
-    Sequence<int>* result = seq.Map( [](const int& x) { return x * 2; } );
+    Sequence<int> *result = seq.Map([]( const int &x ) { return x * 2; } );
 
     EXPECT_EQ(result->GetLength(), 4);
     EXPECT_EQ(result->Get(0), 2);
@@ -25,9 +25,9 @@ TEST(MapTests, Map_DoesNotModifyOriginal) {
     int data[] = {1, 2, 3};
     MutableArraySequence<int> seq(data, 3);
 
-    Sequence<int>* result = seq.Map( [](const int& x) { return x + 10; } );
+    Sequence<int> *result = seq.Map([]( const int &x ) { return x + 10; });
 
-    EXPECT_EQ(seq.Get(0), 1);   // оригинал не изменился
+    EXPECT_EQ(seq.Get(0), 1); // оригинал не изменился
     EXPECT_EQ(seq.Get(1), 2);
     EXPECT_EQ(seq.Get(2), 3);
 
@@ -37,7 +37,7 @@ TEST(MapTests, Map_DoesNotModifyOriginal) {
 TEST(MapTests, Map_EmptySequence_ReturnsEmpty) {
     MutableArraySequence<int> seq;
 
-    Sequence<int>* result = seq.Map( [](const int& x) { return x * 2; } );
+    Sequence<int> *result = seq.Map([]( const int &x ) { return x * 2; });
 
     EXPECT_EQ(result->GetLength(), 0);
 
@@ -48,7 +48,7 @@ TEST(MapTests, Map_OnListSequence) {
     int data[] = {1, 2, 3};
     MutableListSequence<int> seq(data, 3);
 
-    Sequence<int>* result = seq.Map( [](int x) { return x * x; } );
+    Sequence<int> *result = seq.Map([]( int x ) { return x * x; });
 
     EXPECT_EQ(result->Get(0), 1);
     EXPECT_EQ(result->Get(1), 4);
@@ -61,7 +61,7 @@ TEST(MapTests, Map_Immutable_ResultIsNewObject) {
     int data[] = {1, 2, 3};
     ImmutableArraySequence<int> seq(data, 3);
 
-    Sequence<int>* result = seq.Map( [](int x) { return x + 1; } );
+    Sequence<int> *result = seq.Map([]( int x ) { return x + 1; });
 
     EXPECT_EQ(seq.GetLength(), 3);
     EXPECT_EQ(result->Get(0), 2);
@@ -76,7 +76,7 @@ TEST(WhereTests, Where_FilterEvenNumbers) {
     int data[] = {1, 2, 3, 4, 5, 6};
     MutableArraySequence<int> seq(data, 6);
 
-    Sequence<int>* result = seq.Where( [](int x) { return x % 2 == 0; } );
+    Sequence<int> *result = seq.Where([]( int x ) { return x % 2 == 0; });
 
     EXPECT_EQ(result->GetLength(), 3);
     EXPECT_EQ(result->Get(0), 2);
@@ -91,7 +91,7 @@ TEST(WhereTests, Where_NoneMatch_ReturnsEmpty) {
     int data[] = {1, 3, 5};
     MutableArraySequence<int> seq(data, 3);
 
-    Sequence<int>* result = seq.Where( [](const int& x) { return x % 2 == 0; } );
+    Sequence<int> *result = seq.Where([]( const int &x ) { return x % 2 == 0; });
 
     EXPECT_EQ(result->GetLength(), 0);
 
@@ -102,7 +102,7 @@ TEST(WhereTests, Where_AllMatch_ReturnsAll) {
     int data[] = {2, 4, 6};
     MutableArraySequence<int> seq(data, 3);
 
-    Sequence<int>* result = seq.Where( [](const int& x) { return x % 2 == 0; } );
+    Sequence<int> *result = seq.Where([]( const int &x ) { return x % 2 == 0; });
 
     EXPECT_EQ(result->GetLength(), 3);
 
@@ -113,9 +113,9 @@ TEST(WhereTests, Where_DoesNotModifyOriginal) {
     int data[] = {1, 2, 3, 4};
     MutableArraySequence<int> seq(data, 4);
 
-    Sequence<int>* result = seq.Where( [](const int& x) { return x > 2; } );
+    Sequence<int> *result = seq.Where([]( const int &x ) { return x > 2; });
 
-    EXPECT_EQ(seq.GetLength(), 4);  // оригинал не изменился
+    EXPECT_EQ(seq.GetLength(), 4); // оригинал не изменился
 
     delete result;
 }
@@ -124,7 +124,7 @@ TEST(WhereTests, Where_OnListSequence) {
     int data[] = {10, 20, 3, 40};
     MutableListSequence<int> seq(data, 4);
 
-    Sequence<int>* result = seq.Where( [](const int& x) { return x > 10; } );
+    Sequence<int> *result = seq.Where([]( const int &x ) { return x > 10; });
 
     EXPECT_EQ(result->GetLength(), 2);
     EXPECT_EQ(result->Get(0), 20);
@@ -139,7 +139,7 @@ TEST(ReduceTests, Reduce_Sum) {
     MutableArraySequence<int> seq(data, 5);
 
     int sum = seq.Reduce<int>(
-        [](int acc, const int& x) { return acc + x; },
+        []( int acc, const int &x ) { return acc + x; },
         0
     );
 
@@ -151,7 +151,7 @@ TEST(ReduceTests, Reduce_Product) {
     MutableArraySequence<int> seq(data, 4);
 
     int product = seq.Reduce<int>(
-        [](int acc, const int& x) { return acc * x; },
+        []( int acc, const int &x ) { return acc * x; },
         1
     );
 
@@ -163,7 +163,7 @@ TEST(ReduceTests, Reduce_Max) {
     MutableArraySequence<int> seq(data, 8);
 
     int max = seq.Reduce<int>(
-        [](int acc, const int& x) { return x > acc ? x : acc; },
+        []( int acc, const int &x ) { return x > acc ? x : acc; },
         data[0]
     );
 
@@ -174,11 +174,11 @@ TEST(ReduceTests, Reduce_EmptySequence_ReturnsInitial) {
     MutableArraySequence<int> seq;
 
     int result = seq.Reduce<int>(
-        [](int acc, const int& x) { return acc + x; },
+        []( int acc, const int &x ) { return acc + x; },
         42
     );
 
-    EXPECT_EQ(result, 42);  // вернули начальное значение
+    EXPECT_EQ(result, 42); // вернули начальное значение
 }
 
 TEST(ReduceTests, Reduce_OnListSequence) {
@@ -186,7 +186,7 @@ TEST(ReduceTests, Reduce_OnListSequence) {
     MutableListSequence<int> seq(data, 3);
 
     int sum = seq.Reduce<int>(
-        [](int acc, const int& x) { return acc + x; },
+        []( int acc, const int &x ) { return acc + x; },
         0
     );
 
@@ -198,8 +198,8 @@ TEST(ChainTests, MapThenWhere) {
     int data[] = {1, 2, 3, 4, 5};
     MutableArraySequence<int> seq(data, 5);
 
-    Sequence<int>* mapped   = seq.Map(   [](int x) { return x * 2; } );
-    Sequence<int>* filtered = mapped->Where( [](int x) { return x > 5; } );
+    Sequence<int> *mapped = seq.Map([]( int x ) { return x * 2; });
+    Sequence<int> *filtered = mapped->Where([]( int x ) { return x > 5; });
 
     EXPECT_EQ(filtered->GetLength(), 3);
     EXPECT_EQ(filtered->Get(0), 6);
@@ -216,10 +216,10 @@ TEST(ChainTests, WhereThenReduce_SumOfEvens) {
     MutableArraySequence<int> seq(data, 6);
 
     // Фильтруем чётные, считаем сумму
-    Sequence<int>* evens = seq.Where( [](const int& x) { return x % 2 == 0; } );
-    int sum = evens->Reduce<int>( [](int acc, const int& x) { return acc + x; }, 0 );
+    Sequence<int> *evens = seq.Where([]( const int &x ) { return x % 2 == 0; });
+    int sum = evens->Reduce<int>([]( int acc, const int &x ) { return acc + x; }, 0);
 
-    EXPECT_EQ(sum, 12);  // 2 + 4 + 6
+    EXPECT_EQ(sum, 12); // 2 + 4 + 6
 
     delete evens;
 }
@@ -228,10 +228,10 @@ TEST(ChainTests, MapThenReduce_SumOfSquares) {
     int data[] = {1, 2, 3, 4};
     MutableArraySequence<int> seq(data, 4);
 
-    Sequence<int>* squares = seq.Map( [](const int& x) { return x * x; } );
-    int sum = squares->Reduce<int>( [](int acc, const int& x) { return acc + x; }, 0 );
+    Sequence<int> *squares = seq.Map([]( const int &x ) { return x * x; });
+    int sum = squares->Reduce<int>([]( int acc, const int &x ) { return acc + x; }, 0);
 
-    EXPECT_EQ(sum, 30);  // 1 + 4 + 9 + 16
+    EXPECT_EQ(sum, 30); // 1 + 4 + 9 + 16
 
     delete squares;
 }
@@ -242,7 +242,7 @@ TEST(PrefixesTests, BasicPrefixes) {
     int data[] = {1, 2, 3};
     MutableArraySequence<int> seq(data, 3);
 
-    Sequence<Sequence<int>*>* prefixes = GetPrefixes( &seq );
+    Sequence<Sequence<int> *> *prefixes = GetPrefixes(&seq);
 
     // Должно быть 3 префикса
     EXPECT_EQ(prefixes->GetLength(), 3);
@@ -260,7 +260,7 @@ TEST(PrefixesTests, BasicPrefixes) {
     EXPECT_EQ(prefixes->Get(2)->GetLength(), 3);
     EXPECT_EQ(prefixes->Get(2)->Get(2), 3);
 
-    for ( int i = 0; i < prefixes->GetLength(); ++i ) delete prefixes->Get(i);
+    for (int i = 0; i < prefixes->GetLength(); ++i) delete prefixes->Get(i);
     delete prefixes;
 }
 
@@ -268,9 +268,9 @@ TEST(SuffixesTests, BasicSuffixes) {
     int data[] = {1, 2, 3};
     MutableArraySequence<int> seq(data, 3);
 
-    Sequence<Sequence<int>*>* postfixes = GetPostfixes( &seq );
+    Sequence<Sequence<int> *> *postfixes = GetPostfixes(&seq);
 
-    EXPECT_EQ(postfixes->GetLength(), 3);   // ← было suffixes
+    EXPECT_EQ(postfixes->GetLength(), 3); // ← было suffixes
     EXPECT_EQ(postfixes->Get(0)->GetLength(), 3);
     EXPECT_EQ(postfixes->Get(0)->Get(0), 1);
     EXPECT_EQ(postfixes->Get(1)->GetLength(), 2);
@@ -286,7 +286,7 @@ TEST(PrefixesTests, SingleElement) {
     int data[] = {42};
     MutableArraySequence<int> seq(data, 1);
 
-    Sequence<Sequence<int>*>* prefixes = GetPrefixes(&seq);
+    Sequence<Sequence<int> *> *prefixes = GetPrefixes(&seq);
 
     EXPECT_EQ(prefixes->GetLength(), 1);
     EXPECT_EQ(prefixes->Get(0)->Get(0), 42);
@@ -298,7 +298,7 @@ TEST(PrefixesTests, SingleElement) {
 TEST(PrefixesTests, EmptySequence) {
     MutableArraySequence<int> seq;
 
-    Sequence<Sequence<int>*>* prefixes = GetPrefixes( &seq );
+    Sequence<Sequence<int> *> *prefixes = GetPrefixes(&seq);
     EXPECT_EQ(prefixes->GetLength(), 0);
 
     delete prefixes;
@@ -311,8 +311,8 @@ TEST(FlatMapTests, FlatMap_EachElementToTwoElements) {
     MutableArraySequence<int> seq(data, 3);
 
     // Каждый элемент x → [x, x*10]
-    Sequence<int>* result = seq.FlatMap<int>(
-        [](const int& x) -> Sequence<int>* {
+    Sequence<int> *result = seq.FlatMap<int>(
+        []( const int &x ) -> Sequence<int> * {
             int pair[] = {x, x * 10};
             return new MutableArraySequence<int>(pair, 2);
         });
@@ -330,9 +330,9 @@ TEST(FlatMapTests, FlatMap_EmptyInnerSequence_Flattens) {
     MutableArraySequence<int> seq(data, 3);
 
     // Нечётные пропускаем, чётные дублируем
-    Sequence<int>* result = seq.FlatMap<int>(
-        [](const int& x) -> Sequence<int>* {
-            if ( x % 2 == 0 ) {
+    Sequence<int> *result = seq.FlatMap<int>(
+        []( const int &x ) -> Sequence<int> * {
+            if (x % 2 == 0) {
                 int pair[] = {x, x};
                 return new MutableArraySequence<int>(pair, 2);
             }
@@ -353,7 +353,7 @@ TEST(ZipTests, Zip_EqualLength) {
     MutableArraySequence<int> seqA(a, 3);
     MutableArraySequence<std::string> seqB(b, 3);
 
-    auto* result = seqA.Zip<std::string>(&seqB);
+    auto *result = seqA.Zip<std::string>(&seqB);
 
     EXPECT_EQ(result->GetLength(), 3);
     EXPECT_EQ(result->Get(0).first, 1);
@@ -368,7 +368,7 @@ TEST(ZipTests, Zip_DifferentLength_TakesShorter) {
     MutableArraySequence<int> seqA(a, 5);
     MutableArraySequence<int> seqB(b, 2);
 
-    auto* result = seqA.Zip<int>(&seqB);
+    auto *result = seqA.Zip<int>(&seqB);
 
     EXPECT_EQ(result->GetLength(), 2);
     delete result;
@@ -380,7 +380,7 @@ TEST(UnzipTests, Unzip_RestoresOriginals) {
     MutableArraySequence<int> seqA(a, 3);
     MutableArraySequence<int> seqB(b, 3);
 
-    auto* zipped = seqA.Zip<int>(&seqB);
+    auto *zipped = seqA.Zip<int>(&seqB);
     auto [first, second] = Unzip(zipped);
 
     EXPECT_EQ(first->Get(0), 1);
@@ -388,7 +388,9 @@ TEST(UnzipTests, Unzip_RestoresOriginals) {
     EXPECT_EQ(first->Get(2), 3);
     EXPECT_EQ(second->Get(2), 6);
 
-    delete zipped; delete first; delete second;
+    delete zipped;
+    delete first;
+    delete second;
 }
 
 // М-2.1: Skip / Take
@@ -397,7 +399,7 @@ TEST(SkipTakeTests, Skip_ReturnsRemainder) {
     int data[] = {1, 2, 3, 4, 5};
     MutableArraySequence<int> seq(data, 5);
 
-    Sequence<int>* result = seq.Skip(2);
+    Sequence<int> *result = seq.Skip(2);
     EXPECT_EQ(result->GetLength(), 3);
     EXPECT_EQ(result->Get(0), 3);
     delete result;
@@ -407,7 +409,7 @@ TEST(SkipTakeTests, Take_ReturnsFirstN) {
     int data[] = {1, 2, 3, 4, 5};
     MutableArraySequence<int> seq(data, 5);
 
-    Sequence<int>* result = seq.Take(3);
+    Sequence<int> *result = seq.Take(3);
     EXPECT_EQ(result->GetLength(), 3);
     EXPECT_EQ(result->Get(2), 3);
     delete result;
@@ -417,31 +419,31 @@ TEST(SkipTakeTests, Skip_MoreThanLength_ReturnsEmpty) {
     int data[] = {1, 2};
     MutableArraySequence<int> seq(data, 2);
 
-    Sequence<int>* result = seq.Skip(10);
+    Sequence<int> *result = seq.Skip(10);
     EXPECT_EQ(result->GetLength(), 0);
     delete result;
 }
 
-TEST( SkipTakeTest, Skip_Zero_ReturnsSameContent ) {
-    int data[] = { 1, 2, 3 };
-    MutableArraySequence<int> seq( data, 3 );
+TEST(SkipTakeTest, Skip_Zero_ReturnsSameContent) {
+    int data[] = {1, 2, 3};
+    MutableArraySequence<int> seq(data, 3);
 
-    Sequence<int>* result = seq.Skip( 0 );
+    Sequence<int> *result = seq.Skip(0);
 
-    EXPECT_EQ( result->GetLength(), 3 );
-    EXPECT_EQ( result->Get( 0 ), 1 );
-    EXPECT_EQ( result->Get( 2 ), 3 );
+    EXPECT_EQ(result->GetLength(), 3);
+    EXPECT_EQ(result->Get( 0 ), 1);
+    EXPECT_EQ(result->Get( 2 ), 3);
 
     delete result;
 }
 
-TEST( SkipTakeTest, Take_Zero_ReturnsEmpty ) {
-    int data[] = { 1, 2, 3 };
-    MutableArraySequence<int> seq( data, 3 );
+TEST(SkipTakeTest, Take_Zero_ReturnsEmpty) {
+    int data[] = {1, 2, 3};
+    MutableArraySequence<int> seq(data, 3);
 
-    Sequence<int>* result = seq.Take( 0 );
+    Sequence<int> *result = seq.Take(0);
 
-    EXPECT_EQ( result->GetLength(), 0 );
+    EXPECT_EQ(result->GetLength(), 0);
 
     delete result;
 }
@@ -452,7 +454,7 @@ TEST(SplitTests, Split_ByZero) {
     int data[] = {1, 0, 2, 0, 3};
     MutableArraySequence<int> seq(data, 5);
 
-    auto* parts = Split<int>(&seq, [](const int& x) { return x == 0; });
+    auto *parts = Split<int>(&seq, []( const int &x ) { return x == 0; });
 
     EXPECT_EQ(parts->GetLength(), 3);
     EXPECT_EQ(parts->Get(0)->GetLength(), 1); // [1]
@@ -471,7 +473,7 @@ TEST(SliceTests, Slice_RemoveAndInsert) {
     int ins[] = {9, 10};
     MutableArraySequence<int> insSeq(ins, 2);
 
-    Sequence<int>* result = Slice<int>(&seq, 1, 2, &insSeq);
+    Sequence<int> *result = Slice<int>(&seq, 1, 2, &insSeq);
 
     // {1, 9, 10, 4, 5}
     EXPECT_EQ(result->GetLength(), 5);
@@ -486,7 +488,7 @@ TEST(SliceTests, Slice_NegativeIndex_FromEnd) {
     int data[] = {1, 2, 3, 4, 5};
     MutableArraySequence<int> seq(data, 5);
 
-    Sequence<int>* result = Slice<int>(&seq, -2, 1); // удалить 1 эл с позиции 3
+    Sequence<int> *result = Slice<int>(&seq, -2, 1); // удалить 1 эл с позиции 3
     // {1, 2, 3, 5}
     EXPECT_EQ(result->GetLength(), 4);
     EXPECT_EQ(result->Get(3), 5);
@@ -497,9 +499,9 @@ TEST(SplitTests, Split_TrailingSeparator_NoEmptySegment) {
     int data[] = {1, 0};
     MutableArraySequence<int> seq(data, 2);
 
-    auto* parts = Split<int>(&seq, [](const int& x) { return x == 0; });
+    auto *parts = Split<int>(&seq, []( const int &x ) { return x == 0; });
 
-    EXPECT_EQ(parts->GetLength(), 1);       // только [1], без []
+    EXPECT_EQ(parts->GetLength(), 1); // только [1], без []
     EXPECT_EQ(parts->Get(0)->Get(0), 1);
 
     delete parts->Get(0);
@@ -509,7 +511,7 @@ TEST(SplitTests, Split_TrailingSeparator_NoEmptySegment) {
 // М-2.1: Range
 
 TEST(RangeTests, Range_BasicIntRange) {
-    Sequence<int>* result = Range<int>(1, 5); // [1, 2, 3, 4]
+    Sequence<int> *result = Range<int>(1, 5); // [1, 2, 3, 4]
 
     EXPECT_EQ(result->GetLength(), 4);
     EXPECT_EQ(result->Get(0), 1);
@@ -518,7 +520,7 @@ TEST(RangeTests, Range_BasicIntRange) {
 }
 
 TEST(RangeTests, Range_WithStep) {
-    Sequence<int>* result = Range<int>(0, 10, 2); // [0,2,4,6,8]
+    Sequence<int> *result = Range<int>(0, 10, 2); // [0,2,4,6,8]
 
     EXPECT_EQ(result->GetLength(), 5);
     EXPECT_EQ(result->Get(2), 4);
@@ -528,26 +530,27 @@ TEST(RangeTests, Range_WithStep) {
 TEST(RangeTests, Range_ZeroStep_Throws) {
     EXPECT_THROW(Range<int>(0, 5, 0), std::invalid_argument);
 }
-TEST( RangeTest, NegativeStep_DescendingSequence ) {
-    // Range(5, 0, -1) → [5, 4, 3, 2, 1]  (0 не включается)
-    Sequence<int>* result = Range<int>( 5, 0, -1 );
 
-    EXPECT_EQ( result->GetLength(), 5 );
-    EXPECT_EQ( result->Get( 0 ), 5 );
-    EXPECT_EQ( result->Get( 1 ), 4 );
-    EXPECT_EQ( result->Get( 4 ), 1 );
+TEST(RangeTest, NegativeStep_DescendingSequence) {
+    // Range(5, 0, -1) → [5, 4, 3, 2, 1]  (0 не включается)
+    Sequence<int> *result = Range<int>(5, 0, -1);
+
+    EXPECT_EQ(result->GetLength(), 5);
+    EXPECT_EQ(result->Get( 0 ), 5);
+    EXPECT_EQ(result->Get( 1 ), 4);
+    EXPECT_EQ(result->Get( 4 ), 1);
 
     delete result;
 }
 
-TEST( RangeTest, NegativeStep_StepMinusTwo ) {
+TEST(RangeTest, NegativeStep_StepMinusTwo) {
     // Range(10, 0, -2) → [10, 8, 6, 4, 2]  (0 не включается)
-    Sequence<int>* result = Range<int>( 10, 0, -2 );
+    Sequence<int> *result = Range<int>(10, 0, -2);
 
-    EXPECT_EQ( result->GetLength(), 5 );
-    EXPECT_EQ( result->Get( 0 ), 10 );
-    EXPECT_EQ( result->Get( 2 ), 6 );
-    EXPECT_EQ( result->Get( 4 ), 2 );
+    EXPECT_EQ(result->GetLength(), 5);
+    EXPECT_EQ(result->Get( 0 ), 10);
+    EXPECT_EQ(result->Get( 2 ), 6);
+    EXPECT_EQ(result->Get( 4 ), 2);
 
     delete result;
 }
@@ -558,7 +561,7 @@ TEST(SlidingAverageTests, BasicThreeElements) {
     int data[] = {1, 2, 3};
     MutableArraySequence<int> seq(data, 3);
 
-    Sequence<double>* result = SlidingAverage(&seq);
+    Sequence<double> *result = SlidingAverage(&seq);
 
     // a[0]: (1+2)/2 = 1.5
     // a[1]: (1+2+3)/3 = 2.0
@@ -575,7 +578,7 @@ TEST(SlidingAverageTests, FiveElements) {
     int data[] = {2, 4, 6, 8, 10};
     MutableArraySequence<int> seq(data, 5);
 
-    Sequence<double>* result = SlidingAverage(&seq);
+    Sequence<double> *result = SlidingAverage(&seq);
 
     EXPECT_EQ(result->GetLength(), 5);
     EXPECT_DOUBLE_EQ(result->Get(0), 3.0); // (2+4)/2
@@ -591,7 +594,7 @@ TEST(SlidingAverageTests, DoesNotModifyOriginal) {
     int data[] = {1, 2, 3, 4};
     MutableArraySequence<int> seq(data, 4);
 
-    Sequence<double>* result = SlidingAverage(&seq);
+    Sequence<double> *result = SlidingAverage(&seq);
 
     EXPECT_EQ(seq.GetLength(), 4);
     EXPECT_EQ(seq.Get(0), 1); // оригинал не изменился
@@ -606,10 +609,10 @@ TEST(SlidingAverageTests, TooShort_Throws) {
     EXPECT_THROW(SlidingAverage(&seq), std::invalid_argument);
 }
 
-TEST( MinMaxAvgTest, AvgIsNotRounded ) {
-    int data[] = { 1, 2 };
-    MutableArraySequence<int> seq( data, 2 );
+TEST(MinMaxAvgTest, AvgIsNotRounded) {
+    int data[] = {1, 2};
+    MutableArraySequence<int> seq(data, 2);
 
     // avg = (1+2)/2 = 1.5 — проверяем что нет целочисленного округления
-    EXPECT_DOUBLE_EQ( seq.GetAvg(), 1.5 );
+    EXPECT_DOUBLE_EQ(seq.GetAvg(), 1.5);
 }

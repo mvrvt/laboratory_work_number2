@@ -17,6 +17,7 @@ public:
             throw std::invalid_argument( "Bit: value must be 0 or 1" );
         }
     }
+    //TODO проверить, что нигде нет квадратичных переборов
 
     bool GetValue() const { return value_; }
 

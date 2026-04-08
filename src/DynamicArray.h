@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iostream>
+// #include <iostream> //TODO ядро не должно зависеть от ввода и вывода (сделать отдельный файл, где вынесены все операции)
 #include <stdexcept>
 #include <string>
 
@@ -132,24 +132,24 @@ public:
         CheckIndex( index );
         return data_[index];
     }
-
-    // "IEnumerator" - хранит текущую позицию, умеет двигаться вперёд
-    class IEnumerator {
-    private:
-        T* ptr_;
-    public:
-        explicit IEnumerator( T* p ) : ptr_( p ) { }
-
-        T& operator*()                                { return *ptr_; }
-        const T& operator*()                    const { return *ptr_; }
-        IEnumerator& operator++()                     { ++ptr_; return *this; }
-        bool operator!=( const IEnumerator& o ) const { return ptr_ != o.ptr_; }
-        bool operator==( const IEnumerator& o ) const { return ptr_ == o.ptr_; }
-    };
-
-    // "IEnumerable" - умеет создавать итераторы
-    IEnumerator begin()       { return IEnumerator( data_ ); }
-    IEnumerator end()         { return IEnumerator( data_ + size_ ); }
-    IEnumerator begin() const { return IEnumerator( data_ ); }
-    IEnumerator end()   const { return IEnumerator( data_ + size_ ); }
+    //
+    // // "IEnumerator" - хранит текущую позицию, умеет двигаться вперёд
+    // class IEnumerator {
+    // private:
+    //     T* ptr_;
+    // public:
+    //     explicit IEnumerator( T* p ) : ptr_( p ) { }
+    //
+    //     T& operator*()                                { return *ptr_; }
+    //     const T& operator*()                    const { return *ptr_; }
+    //     IEnumerator& operator++()                     { ++ptr_; return *this; }
+    //     bool operator!=( const IEnumerator& o ) const { return ptr_ != o.ptr_; }
+    //     bool operator==( const IEnumerator& o ) const { return ptr_ == o.ptr_; }
+    // };
+    //
+    // // "IEnumerable" - умеет создавать итераторы
+    // IEnumerator begin()       { return IEnumerator( data_ ); }
+    // IEnumerator end()         { return IEnumerator( data_ + size_ ); }
+    // IEnumerator begin() const { return IEnumerator( data_ ); }
+    // IEnumerator end()   const { return IEnumerator( data_ + size_ ); }
 };

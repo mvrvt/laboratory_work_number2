@@ -197,21 +197,21 @@ public:
         }
         return result;
     }
-
-    // IEnumerator
-    class IEnumerator {
-    private:
-        Node* current_;
-    public:
-        explicit IEnumerator( Node* n ) : current_( n ) { }
-
-        T&           operator*()                              { return current_->data; }
-        const T&     operator*()                        const { return current_->data; }
-        IEnumerator& operator++()                             { current_ = current_->next; return *this; }
-        bool         operator!=( const IEnumerator& o ) const { return current_ != o.current_; }
-        bool         operator==( const IEnumerator& o ) const { return current_ == o.current_; }
-    };
-
-    IEnumerator begin() { return IEnumerator( head_ ); }
-    IEnumerator end() { return IEnumerator( nullptr ); } // конец - nullptr (след. элемента нет)
+    //
+    // // IEnumerator
+    // class IEnumerator {
+    // private:
+    //     Node* current_;
+    // public:
+    //     explicit IEnumerator( Node* n ) : current_( n ) { }
+    //
+    //     T&           operator*()                              { return current_->data; }
+    //     const T&     operator*()                        const { return current_->data; }
+    //     IEnumerator& operator++()                             { current_ = current_->next; return *this; }
+    //     bool         operator!=( const IEnumerator& o ) const { return current_ != o.current_; }
+    //     bool         operator==( const IEnumerator& o ) const { return current_ == o.current_; }
+    // };
+    //
+    // IEnumerator begin() { return IEnumerator( head_ ); }
+    // IEnumerator end() { return IEnumerator( nullptr ); } // конец - nullptr (след. элемента нет)
 };
