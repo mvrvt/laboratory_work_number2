@@ -24,6 +24,7 @@ add_executable( tests
         tests/Sequence_tests.cpp
         tests/BitSequence_tests.cpp
         tests/MapReduce_tests.cpp
+        tests/Iterator_tests.cpp
 )
 target_include_directories( tests PRIVATE src )
 target_link_libraries( tests gtest_main )

@@ -3,9 +3,11 @@
 #include <stdexcept>
 #include <string>
 #include "DynamicArray.h"
+#include "ICollection.h"
+#include "IEnumerable.h"
 
 template <class T>
-class LinkedList {
+class LinkedList : public ICollection<T>, public IEnumerable<T> {
 private:
     struct Node {
         T     data;
@@ -45,6 +47,42 @@ private:
     }
 
 public:
+    // Встроенный итератор, идёт по указателям Node*
+    // Это O(n) в сумме, в отличие от Get(Index), который был бы O(n^2)
+    class ListIterator : public IEnumerator<T> {
+    private:
+        Node* current_; // текущий узел (nullptr = позиция до начала)
+        Node* head_;    // голова списка (нужна для Reset)
+
+    public:
+        explicit ListIterator( Node* head ) : head_( head ), current_( nullptr ) { }
+
+        bool MoveNext() override {
+            if ( current_ == nullptr ) {
+                // Первый вызов - переход к голове
+                current_ = head_;
+            } else {
+                current_ = current_->next;
+            }
+            return current_ != nullptr;
+        }
+
+        T& Current() override {
+            if ( current_ == nullptr )
+                throw IndexOutOfRange( "ListIterator: no current element" );
+            return current_->data;
+        }
+
+        void Reset() override {
+            current_ = nullptr; // обнуляем, не head_ - позиция перед первым
+        }
+    };
+    //======================================================================
+
+    IEnumerator<T>* GetEnumerator() override {
+        return new ListIterator( head_ );
+    }
+
     // Конструкторы
     LinkedList() : head_( nullptr ), tail_( nullptr ), size_( 0 ) { }
 
@@ -86,24 +124,30 @@ public:
         Clear();
     }
 
-    // Декомпозиция
+    // ICollection
+    T& Get( std::size_t index ) override {
+        return GetNode( index )->data;
+    }
+    const T& Get( std::size_t index ) const override {
+        return GetNode( index )->data;
+    }
+    std::size_t GetCount() const override {
+        return static_cast<std::size_t>( size_ );
+    }
 
-    T GetFirst() const {
+    // Декомпозиция
+    T& GetFirst() const {
         if ( size_ == 0 ) {
             throw IndexOutOfRange( "LinkedList: list is empty" );
         }
         return head_->data;
     }
 
-    T GetLast() const {
+    T& GetLast() const {
         if ( size_ == 0 ) {
             throw IndexOutOfRange( "LinkedList: list is empty" );
         }
         return tail_->data;
-    }
-
-    T Get( int index ) const {
-        return GetNode( index )->data;
     }
 
     int GetLength() const {
@@ -197,21 +241,4 @@ public:
         }
         return result;
     }
-    //
-    // // IEnumerator
-    // class IEnumerator {
-    // private:
-    //     Node* current_;
-    // public:
-    //     explicit IEnumerator( Node* n ) : current_( n ) { }
-    //
-    //     T&           operator*()                              { return current_->data; }
-    //     const T&     operator*()                        const { return current_->data; }
-    //     IEnumerator& operator++()                             { current_ = current_->next; return *this; }
-    //     bool         operator!=( const IEnumerator& o ) const { return current_ != o.current_; }
-    //     bool         operator==( const IEnumerator& o ) const { return current_ == o.current_; }
-    // };
-    //
-    // IEnumerator begin() { return IEnumerator( head_ ); }
-    // IEnumerator end() { return IEnumerator( nullptr ); } // конец - nullptr (след. элемента нет)
 };

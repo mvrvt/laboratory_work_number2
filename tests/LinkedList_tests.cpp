@@ -147,19 +147,6 @@ TEST(LinkedListOperations, InsertAt_End_SameAsAppend) {
     EXPECT_EQ(list.GetLength(), 3);
 }
 
-TEST( LinkedListSequenceTest, InsertAt_End_SameAsAppend ) {
-    int data[] = { 1, 2, 3 };
-    Sequence<int>* seq = new MutableListSequence<int>( data, 3 );
-
-    seq->InsertAt( 99, 3 ); // вставка в конец (индекс == длина)
-
-    EXPECT_EQ( seq->GetLength(), 4 );
-    EXPECT_EQ( seq->Get( 3 ), 99 );
-    EXPECT_EQ( seq->GetLast(), 99 );
-
-    delete seq;
-}
-
 // ==================== GetSubList ====================
 
 TEST(LinkedListSubList, GetSubList_ReturnsCorrectRange) {
@@ -186,19 +173,6 @@ TEST(LinkedListSubList, GetSubList_SingleElement) {
     EXPECT_EQ(sub->Get(0), 20);
 
     delete sub;
-}
-
-TEST( LinkedListSequenceTest, GetSubsequence_SingleElement ) {
-    int data[] = { 10, 20, 30 };
-    Sequence<int>* seq = new MutableListSequence<int>( data, 3 );
-
-    Sequence<int>* sub = seq->GetSubsequence( 1, 1 ); // только элемент [1] = 20
-
-    EXPECT_EQ( sub->GetLength(), 1 );
-    EXPECT_EQ( sub->Get( 0 ), 20 );
-
-    delete sub;
-    delete seq;
 }
 
 // ==================== Concat ====================
@@ -308,59 +282,4 @@ TEST(LinkedListTemplate, WorksWithDouble) {
 
     EXPECT_DOUBLE_EQ(list.GetFirst(), 1.1);
     EXPECT_DOUBLE_EQ(list.GetLast(), 3.3);
-}
-
-// ======================== IEnumerator ========================
-TEST(LinkedListIterator, RangeBasedFor_IteratesOverAllElements) {
-    int items[] = {100, 200, 300};
-    LinkedList<int> list(items, 3);
-
-    std::vector<int> result;
-    for (int val : list) {
-        result.push_back(val);
-    }
-
-    EXPECT_EQ(result.size(), 3);
-    EXPECT_EQ(result[0], 100);
-    EXPECT_EQ(result[1], 200);
-    EXPECT_EQ(result[2], 300);
-}
-
-TEST(LinkedListIterator, SingleElement_IterationWorks) {
-    LinkedList<int> list;
-    list.Append(42);
-
-    int count = 0;
-    for (int val : list) {
-        EXPECT_EQ(val, 42);
-        ++count;
-    }
-    EXPECT_EQ(count, 1);
-}
-
-TEST(LinkedListIterator, EmptyList_IterationDoesNothing) {
-    LinkedList<int> list;
-
-    int count = 0;
-    for (int val : list) {
-        (void)val;
-        ++count;
-    }
-    EXPECT_EQ(count, 0);
-}
-
-TEST(LinkedListIterator, ManualIterator_AdvancesCorrectly) {
-    int items[] = {1, 2, 3, 4};
-    LinkedList<int> list(items, 4);
-
-    auto it = list.begin();
-    EXPECT_EQ(*it, 1);
-    ++it;
-    EXPECT_EQ(*it, 2);
-    ++it;
-    EXPECT_EQ(*it, 3);
-    ++it;
-    EXPECT_EQ(*it, 4);
-    ++it;
-    EXPECT_EQ(it, list.end());
 }

@@ -1,8 +1,10 @@
 #pragma once
 
-// #include <iostream> //TODO ядро не должно зависеть от ввода и вывода (сделать отдельный файл, где вынесены все операции)
-#include <stdexcept>
+#include <stdexcept> // для ошибки out_of_range
+#include <cstddef> // для типа элементов size_t
 #include <string>
+#include "ICollection.h"
+#include "IEnumerable.h"
 
 class IndexOutOfRange : public std::out_of_range {
 public:
@@ -11,11 +13,10 @@ public:
 };
 
 template <class T>
-class DynamicArray {
+class DynamicArray : public ICollection<T>, public IEnumerable<T> {
 private:
     T*  data_;
     int size_;
-    int capacity_;
 
     void CheckIndex( int index ) const {
         if ( index < 0 || index >= size_ ) {
@@ -24,7 +25,39 @@ private:
     }
 
 public:
-    DynamicArray( T* items, int count ) : data_( nullptr ), size_( count ), capacity_( count + 5 ) {
+    // Встроенный класс-итератор
+    class ArrayIterator : public IEnumerator<T> {
+    private:
+        DynamicArray<T>& arr_; // ссылка на массив
+        int index_;            // -1 - позиция до первого элемента
+
+    public:
+        explicit ArrayIterator( DynamicArray<T>& arr ) : arr_( arr ), index_( -1 ) { }
+
+        bool MoveNext() override {
+            ++index_;
+            return index_ < static_cast<int>( arr_.GetCount() );
+        }
+
+        T& Current() override {
+            if ( index_ < 0 || index_ >= static_cast<int>( arr_.GetCount() ) )
+                throw IndexOutOfRange( "ArrayIterator: index out of range" );
+            return arr_.Get( static_cast<std::size_t>( index_ ) );
+        }
+
+        void Reset() override {
+            index_ = -1;
+        }
+    };
+
+    //======================================================
+
+    // Фабричный метод — создаёт итератор для этого массива
+    IEnumerator<T>* GetEnumerator() override {
+        return new ArrayIterator( *this );
+    }
+
+    DynamicArray( T* items, int count ) : data_( nullptr ), size_( count ) {
         if ( count < 0 ) {
             throw std::invalid_argument( "DynamicArray: count can't be negative" );
         }
@@ -32,34 +65,39 @@ public:
             throw std::invalid_argument( "DynamicArray: items is nullptr" );
         }
 
-        data_ = ( capacity_ > 0 ) ? new T[capacity_] : nullptr;
-        for ( int idx = 0; idx < size_; ++idx ) {
-            data_[idx] = items[idx];
+        if ( size_ > 0 ) {
+            data_ = new T[size_];
+            for ( int idx = 0; idx < size_; ++idx ) {
+                data_[idx] = items[idx];
+            }
         }
     }
 
-    explicit DynamicArray( int size ) : data_( nullptr ), size_( size ), capacity_( size + 5) {
+    explicit DynamicArray( int size ) : data_( nullptr ), size_( size ) {
         if ( size < 0 ) {
             throw std::invalid_argument( "DynamicArray: size can't be negative" );
         }
 
-        data_ = ( capacity_ > 0 ) ? new T[capacity_] : nullptr;
+        if ( size_ > 0 ) {
+            data_ = new T[size_];
+        }
     }
 
-    DynamicArray( const DynamicArray<T>& other ) : data_( nullptr ), size_( other.size_ ), capacity_( other.capacity_ ) {
-        if ( capacity_ > 0 ) {
-            data_ = new T[capacity_];
+    DynamicArray( const DynamicArray<T>& other ) : data_( nullptr ), size_( other.size_ ) {
+        if ( size_ > 0 ) {
+            data_ = new T[size_];
             for ( int idx = 0; idx < size_; ++idx ) {
                 data_[idx] = other.data_[idx];
             }
         }
     }
 
-    DynamicArray<T>& operator=( const DynamicArray<T>& other ) {
+    DynamicArray<T>& operator=( const DynamicArray <T>& other ) {
         if ( this != &other ) {
             T* new_data = nullptr;
-            if ( other.capacity_ > 0 ) {
-                new_data = new T[other.capacity_];
+
+            if ( other.size_  > 0 ) {
+                new_data = new T[other.size_];
                 for ( int idx = 0; idx < other.size_; ++idx ) {
                     new_data[idx] = other.data_[idx];
                 }
@@ -67,21 +105,18 @@ public:
             delete[] data_;
             data_ = new_data;
             size_ = other.size_;
-            capacity_ = other.capacity_;
         }
         return *this;
     }
 
-    ~DynamicArray() {
+    ~DynamicArray() override {
         delete[] data_;
     }
 
-    T Get( int index ) const {
-        CheckIndex( index );
-        return data_[index];
-    }
+    T&       Get( std::size_t index )       override { CheckIndex( index ); return data_[index]; }
+    const T& Get( std::size_t index ) const override { CheckIndex( index ); return data_[index]; }
 
-    int GetSize() const {
+    std::size_t GetCount() const override {
         return size_;
     }
 
@@ -91,35 +126,23 @@ public:
     }
 
     void Resize( int new_size ) {
-        if ( new_size < 0)
+        if ( new_size < 0 ) {
             throw std::invalid_argument( "DynamicArray: new_size can't be negative" );
-
-        if ( new_size <= capacity_ ) {
-            if ( new_size < size_ ) {
-                for ( int i = new_size; i < size_; ++i ) {
-                    data_[i].~T();
-                }
-            }
-            size_ = new_size;
-            return;
         }
 
-        int new_capacity = capacity_;
-        const int threshold = 1000000;
-        while ( new_capacity < new_size ) {
-            if ( new_capacity < threshold ) {
-                new_capacity = ( new_capacity == 0 ) ? 1 : new_capacity * 2;
-            } else {
-                new_capacity += threshold / 2 ;
+        T* new_data = nullptr;
+
+        if ( new_size > 0 ) {
+            new_data = new T[new_size];
+            int copy_count = ( new_size < size_ ) ? new_size : size_;
+
+            for ( int idx = 0; idx < copy_count; ++idx ) {
+                new_data[idx] = data_[idx];
             }
         }
-        T* new_data = new T[new_capacity];
-        for ( int idx = 0; idx < size_; ++idx ) {
-            new_data[idx] = data_[idx];
-        }
+
         delete[] data_;
         data_ = new_data;
-        capacity_ = new_capacity;
         size_ = new_size;
     }
 
@@ -132,24 +155,4 @@ public:
         CheckIndex( index );
         return data_[index];
     }
-    //
-    // // "IEnumerator" - хранит текущую позицию, умеет двигаться вперёд
-    // class IEnumerator {
-    // private:
-    //     T* ptr_;
-    // public:
-    //     explicit IEnumerator( T* p ) : ptr_( p ) { }
-    //
-    //     T& operator*()                                { return *ptr_; }
-    //     const T& operator*()                    const { return *ptr_; }
-    //     IEnumerator& operator++()                     { ++ptr_; return *this; }
-    //     bool operator!=( const IEnumerator& o ) const { return ptr_ != o.ptr_; }
-    //     bool operator==( const IEnumerator& o ) const { return ptr_ == o.ptr_; }
-    // };
-    //
-    // // "IEnumerable" - умеет создавать итераторы
-    // IEnumerator begin()       { return IEnumerator( data_ ); }
-    // IEnumerator end()         { return IEnumerator( data_ + size_ ); }
-    // IEnumerator begin() const { return IEnumerator( data_ ); }
-    // IEnumerator end()   const { return IEnumerator( data_ + size_ ); }
 };

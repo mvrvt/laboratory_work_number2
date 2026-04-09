@@ -1,7 +1,9 @@
 #pragma once
 
+#include <cstddef> // для size_t
 #include "Sequence.h"
 #include "LinkedList.h"
+#include "SequenceIterator.h"
 
 // forward declaration
 template <class T> class MutableListSequence;
@@ -29,6 +31,10 @@ protected:
     }
 
 public:
+    IEnumerator<T>* GetEnumerator() override {
+        return new SequenceIterator<T>( this );
+    }
+
     ListSequence() : items_( new LinkedList<T>() ) { }
 
     ListSequence( T* data, int count ) : items_( new LinkedList<T>( data, count ) ) { }
@@ -39,10 +45,18 @@ public:
         delete items_;
     }
 
-    T GetFirst() const override       { return items_->GetFirst(); }
-    T GetLast()  const override       { return items_->GetLast(); }
-    T Get( int index ) const override { return items_->Get( index ); }
-    int GetLength() const override    { return items_->GetLength(); }
+    T& Get( std::size_t index ) override {
+        return items_->Get( index ); // делегируем в LinkedList
+    }
+    const T& Get( std::size_t index ) const override {
+        return items_->Get( index );
+    }
+
+    T&   GetFirst() const override { return items_->GetFirst(); }
+    T&   GetLast()  const override { return items_->GetLast(); }
+    int GetLength() const override {
+        return items_->GetLength();
+    }
 
     // IEnumerator (делегируем в LL)
     auto begin() { return items_->begin(); }

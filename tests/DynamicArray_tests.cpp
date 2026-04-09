@@ -7,7 +7,7 @@ TEST( DynamicArrayConstructors, FromRawArray_StoresCorrectValue ) {
     int items[] = {1, 2, 3, 4};
     DynamicArray<int> arr( items, 4 );
 
-    EXPECT_EQ( arr.GetSize(), 4 );
+    EXPECT_EQ( arr.GetCount(), 4 );
     EXPECT_EQ( arr.Get(0 ), 1 );
     EXPECT_EQ( arr.Get( 1 ), 2 );
     EXPECT_EQ( arr.Get( 2 ), 3 );
@@ -18,19 +18,19 @@ TEST( DynamicArrayConstructors, FromRawArray_ZeroCount_EmptyArray ) {
     int items[] = {1, 2, 3};
     DynamicArray<int> arr( items, 0 );
 
-    EXPECT_EQ( arr.GetSize(), 0 );
+    EXPECT_EQ( arr.GetCount(), 0 );
 }
 
 TEST( DynamicArrayConstructors, FromSize_CorrectSize ) {
     DynamicArray<int> arr( 5 );
 
-    EXPECT_EQ( arr.GetSize(), 5 );
+    EXPECT_EQ( arr.GetCount(), 5 );
 }
 
 TEST( DynamicArrayConstructors, FromSize_Zero_EmptyArray ) {
     DynamicArray<int> arr( 0 );
 
-    EXPECT_EQ( arr.GetSize(), 0 );
+    EXPECT_EQ( arr.GetCount(), 0 );
 }
 
 TEST( DynamicArrayConstructors, CopyConstructor_MakesDeepCope ) {
@@ -43,14 +43,14 @@ TEST( DynamicArrayConstructors, CopyConstructor_MakesDeepCope ) {
 
     EXPECT_EQ( original.Get( 0 ), 10 );
     EXPECT_EQ( copied.Get( 0 ), 999 );
-    EXPECT_EQ( copied.GetSize(), 3 );
+    EXPECT_EQ( copied.GetCount(), 3 );
 }
 
 TEST( DynamicArrayConstructors, CopyConstructor_EmptyArray ) {
     DynamicArray<int> original( 0 );
     DynamicArray<int> copied( original );
 
-    EXPECT_EQ( copied.GetSize(), 0 );
+    EXPECT_EQ( copied.GetCount(), 0 );
 }
 
 // Оператор присваивания
@@ -67,7 +67,7 @@ TEST( DynamicArrayAssignment, AssignmentOperator_MakesDeepCopy ) {
 
     EXPECT_EQ( a.Get(0), 1 );
     EXPECT_EQ( b.Get( 0 ), 777 );
-    EXPECT_EQ( b.GetSize(), 3 );
+    EXPECT_EQ( b.GetCount(), 3 );
 }
 
 TEST( DynamicArrayAssignment, SelfAssignment_NoCorruption ) {
@@ -76,7 +76,7 @@ TEST( DynamicArrayAssignment, SelfAssignment_NoCorruption ) {
 
     arr = arr; // Самоприсваивание не должно ничего ломать
 
-    EXPECT_EQ( arr.GetSize(), 3 );
+    EXPECT_EQ( arr.GetCount(), 3 );
     EXPECT_EQ( arr.Get( 0 ), 1 );
     EXPECT_EQ( arr.Get( 2 ), 3 );
 }
@@ -121,7 +121,7 @@ TEST(DynamicArrayResize, Grow_PreservesOldElements) {
 
     arr.Resize(5);
 
-    EXPECT_EQ(arr.GetSize(), 5);
+    EXPECT_EQ(arr.GetCount(), 5);
     EXPECT_EQ(arr.Get(0), 1);
     EXPECT_EQ(arr.Get(1), 2);
     EXPECT_EQ(arr.Get(2), 3);
@@ -133,7 +133,7 @@ TEST(DynamicArrayResize, Shrink_KeepsFirstElements) {
 
     arr.Resize(2);
 
-    EXPECT_EQ(arr.GetSize(), 2);
+    EXPECT_EQ(arr.GetCount(), 2);
     EXPECT_EQ(arr.Get(0), 1);
     EXPECT_EQ(arr.Get(1), 2);
 }
@@ -144,7 +144,7 @@ TEST(DynamicArrayResize, ToZero_EmptyArray) {
 
     arr.Resize(0);
 
-    EXPECT_EQ(arr.GetSize(), 0);
+    EXPECT_EQ(arr.GetCount(), 0);
 }
 
 TEST(DynamicArrayResize, FromZero_Grow) {
@@ -154,7 +154,7 @@ TEST(DynamicArrayResize, FromZero_Grow) {
     arr.Set(0, 10);
     arr.Set(2, 30);
 
-    EXPECT_EQ(arr.GetSize(), 3);
+    EXPECT_EQ(arr.GetCount(), 3);
     EXPECT_EQ(arr.Get(0), 10);
     EXPECT_EQ(arr.Get(2), 30);
 }
@@ -234,55 +234,3 @@ TEST(DynamicArrayTemplate, WorksWithString) {
     EXPECT_EQ(arr.Get(0), "hello");
     EXPECT_EQ(arr.Get(1), "world");
 }
-
-// TEST(DynamicArrayIterator, RangeBasedFor_IteratesOverAllElements) {
-//     int items[] = {10, 20, 30, 40};
-//     DynamicArray<int> arr(items, 4);
-//
-//     std::vector<int> result;
-//     for (int val : arr) {
-//         result.push_back(val);
-//     }
-//
-//     EXPECT_EQ(result.size(), 4);
-//     EXPECT_EQ(result[0], 10);
-//     EXPECT_EQ(result[1], 20);
-//     EXPECT_EQ(result[2], 30);
-//     EXPECT_EQ(result[3], 40);
-// }
-//
-// TEST(DynamicArrayIterator, EmptyArray_IterationDoesNothing) {
-//     DynamicArray<int> arr(0);
-//
-//     int count = 0;
-//     for (int val : arr) {
-//         (void)val;
-//         ++count;
-//     }
-//     EXPECT_EQ(count, 0);
-// }
-//
-// TEST(DynamicArrayIterator, ConstIterator_DoesNotModify) {
-//     int items[] = {1, 2, 3};
-//     const DynamicArray<int> arr(items, 3);
-//
-//     std::vector<int> result;
-//     for (const int& val : arr) {  // const reference
-//         result.push_back(val);
-//     }
-//     EXPECT_EQ(result.size(), 3);
-// }
-//
-// TEST(DynamicArrayIterator, ManualIteratorUsage) {
-//     int items[] = {5, 6, 7};
-//     DynamicArray<int> arr(items, 3);
-//
-//     auto it = arr.begin();
-//     EXPECT_EQ(*it, 5);
-//     ++it;
-//     EXPECT_EQ(*it, 6);
-//     ++it;
-//     EXPECT_EQ(*it, 7);
-//     ++it;
-//     EXPECT_EQ(it, arr.end());
-// }

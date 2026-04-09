@@ -1,7 +1,9 @@
 #pragma once
 
+#include <cstddef> // для size_t
 #include "Sequence.h"
 #include "DynamicArray.h"
+#include "SequenceIterator.h"
 
 // forward declaration
 template <class T> class MutableArraySequence;
@@ -9,7 +11,14 @@ template <class T> class MutableArraySequence;
 template <class T>
 class ArraySequence : public Sequence<T> {
 protected:
-    DynamicArray<T>* items_; //TODO здесь хранить size_ последовательности,
+    DynamicArray<T>* items_;
+    int count_;
+    // благодаря count_ реализован паттерн, в котором у ArraySequence имеется и size и capacity
+    // actual size ArraySequence - это ArraySequence::count_
+    // а actual capacity это DynamicArray::size_
+
+
+    //TODO здесь хранить size_ последовательности,
 
     //TODO у ар сек есть свой сайз, который является
     //TODO у dyn arr есть только size
@@ -18,71 +27,99 @@ protected:
     virtual ArraySequence<T>* Instance() = 0;
 
     ArraySequence<T>* AppendInternal( const T& item ) {
-        items_->Resize( items_->GetSize() + 1 );
-        items_->Set( items_->GetSize() - 1, item );
+        if ( count_ >= static_cast<int>( items_->GetCount() ) ) {
+            // не хватает места — увеличиваем capacity (например, вдвое)
+            int new_cap = ( items_->GetCount() == 0 ) ? 1 : items_->GetCount() * 2;
+            items_->Resize( new_cap );
+        }
+        items_->Set( count_, item );
+        ++count_;
         return this;
     }
 
     ArraySequence<T>* PrependInternal( const T& item ) {
-        items_->Resize( items_->GetSize() + 1 );
-        for ( int idx = items_->GetSize() - 1; idx > 0; --idx ) {
-            items_->Set( idx, items_->Get( idx-1 ) );
+        if ( count_ >= static_cast<int>( items_->GetCount() ) ) {
+            int new_cap = ( items_->GetCount() == 0 ) ? 1 : items_->GetCount() * 2;
+            items_->Resize( new_cap );
+        }
+        for ( int idx = count_; idx > 0; --idx ) {
+            items_->Set( idx, items_->Get( idx - 1 ) );
         }
         items_->Set( 0, item );
+        ++count_;
         return this;
     }
 
     ArraySequence<T>* InsertAtInternal( const T& item, int index ) {
-        if ( index < 0 || index > items_->GetSize() ) {
+        if ( index < 0 || index > count_ ) {
             throw IndexOutOfRange( "ArraySequence: index out of range" );
         }
-        items_->Resize( items_->GetSize() + 1 );
-        for ( int idx = items_->GetSize() - 1; idx > index; --idx ) {
-            items_->Set( idx, items_->Get( idx-1 ) );
+        if ( count_ >= static_cast<int>( items_->GetCount() ) ) {
+            int new_cap = ( items_->GetCount() == 0 ) ? 1 : items_->GetCount() * 2;
+            items_->Resize( new_cap );
+        }
+        for ( int idx = count_; idx > index; --idx ) { // двигаем только реальные элементы
+            items_->Set( idx, items_->Get( idx - 1 ) );
         }
         items_->Set( index, item );
+        ++count_;
         return this;
     }
 
 public:
-    ArraySequence() : items_( new DynamicArray<T> ( 0 ) ) { }
-
-    ArraySequence( T* data, int count ) : items_( new DynamicArray<T>( data, count ) ) { }
-
-    ArraySequence( const ArraySequence<T>& other ) : items_( new DynamicArray<T>( *other.items_ ) ) { }
-
     ~ArraySequence() override {
         delete items_;
     }
 
+    IEnumerator<T>* GetEnumerator() override {
+        return new SequenceIterator<T>( this );
+        // "this" — это сам ArraySequence*, который является Sequence<T>*
+    }
+
+    ArraySequence() : items_( new DynamicArray<T>(0) ), count_(0) {}
+
+    ArraySequence( T* data, int count )
+        : items_( new DynamicArray<T>(data, count) ), count_( count ) {}
+
+    ArraySequence( const ArraySequence<T>& other )
+        : items_( new DynamicArray<T>(*other.items_) ), count_( other.count_ ) {}
+
     // Декомпозиция
-    T GetFirst() const override {
-        if ( items_->GetSize() == 0 ) {
+    T& GetFirst() const override {
+        if ( count_ == 0 ) {
             throw IndexOutOfRange( "ArraySequence: sequence is empty" );
         }
         return items_->Get( 0 );
     }
 
-    T GetLast() const override {
-        if ( items_->GetSize() == 0 ) {
+    T& GetLast() const override {
+        if ( count_ == 0 ) {
             throw IndexOutOfRange( "ArraySequence: sequence is empty" );
         }
-        return items_->Get( items_->GetSize() - 1 );
+        return items_->Get( count_ - 1 );
     }
 
-    T Get( int index ) const override {
-        return items_->Get( index );
+    T& Get( std::size_t index ) override {
+        if ( static_cast<int>(index) >= count_ )
+            throw IndexOutOfRange( "ArraySequence: index out of range" );
+        return items_->Get(index);
+    }
+
+    const T& Get( std::size_t index ) const override {
+        if ( static_cast<int>(index) >= count_ )
+            throw IndexOutOfRange( "ArraySequence: index out of range" );
+        return items_->Get(index);
     }
 
     int GetLength() const override {
-        return items_->GetSize();
+        return count_;
     }
 
     Sequence<T>* GetSubsequence( int start, int end ) const override {
-        if ( start < 0 || start >= items_->GetSize() ) {
+        if ( start < 0 || start >= count_ ) {
             throw IndexOutOfRange( "ArraySequence: start index out of range" );
         }
-        if ( end < 0 || end >= items_->GetSize() ) {
+        if ( end < 0 || end >= count_ ) {
             throw IndexOutOfRange( "ArraySequence: end index out of range" );
         }
         if ( start > end ) {
@@ -99,19 +136,17 @@ public:
     }
 
     const T& operator[]( int index ) const {
+        if ( index < 0 || index >= count_ )
+            throw IndexOutOfRange("ArraySequence: index out of range");
         return ( *items_ )[index];
     }
 
     // Оператор записи: seq[i] = value, только для ArraySequence
     T& operator[]( int index ) {
+        if ( index < 0 || index >= count_ )       // ← добавь проверку
+            throw IndexOutOfRange("ArraySequence: index out of range");
         return ( *items_ )[index]; // делегируем DynamicArray, т.к. там уже имеется T& operator[]
     }
-
-    // IEnumerator
-    auto begin()       { return items_->begin(); }
-    auto end()         { return items_->end(); }
-    auto begin() const { return items_->begin(); }
-    auto end() const   { return items_->end(); }
 
     // Операции через паттерн Instance()
     Sequence<T>* Append( const T& item ) override {

@@ -3,22 +3,33 @@
 #include <functional>
 #include <stdexcept>
 #include <algorithm>
-
 #include "DynamicArray.h"
+#include "ICollection.h"
+#include "IEnumerable.h"
 
 // forward declaration (нужен для GetPrefixes и GetPostfixes)
 template <class T> class MutableArraySequence;
 
 template <class T>
-class Sequence {
+class Sequence : public ICollection<T>, public IEnumerable<T> {
 public:
-    virtual ~Sequence() = default;
+    // GetEnumerator() унаследован от IEnumerable<T> как чисто виртуальный —
+    // каждый конкретный наследник (ArraySequence, ListSequence) обязан
+    // его переопределить через override.
+
+    ~Sequence() override = default;
+
+    // ICollection
+    T& Get( std::size_t index )               override = 0;
+    virtual const T& Get( std::size_t index ) const    = 0;
+    std::size_t GetCount() const override {
+        return static_cast<std::size_t>(GetLength());
+    }
 
     // Декомпозиция
-    virtual T /*&*/            GetFirst()                           const = 0;
-    virtual T            GetLast()                            const = 0;
-    virtual T            Get( int index )                     const = 0;
-    virtual int          GetLength()                          const = 0;
+    virtual T&           GetFirst()                           const = 0;
+    virtual T&           GetLast()                            const = 0;
+    virtual int         GetLength()                           const = 0;
     virtual Sequence<T>* GetSubsequence( int start, int end ) const = 0; //TODO переделать под константную ссылку, иначе нужно объяснить почему это не так
 
     // Оператор чтения: seq[i] вместо seq.Get( i )
