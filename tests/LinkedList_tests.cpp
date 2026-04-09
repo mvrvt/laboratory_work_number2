@@ -34,7 +34,7 @@ TEST(LinkedListConstructors, CopyConstructor_MakesDeepCopy) {
     LinkedList<int> original(items, 3);
     LinkedList<int> copy(original);
 
-    // Меняем копию через InsertAt — оригинал не должен меняться
+    // Меняем копию через InsertAt - оригинал не должен меняться
     copy.Prepend(999);
 
     EXPECT_EQ(original.GetLength(), 3);

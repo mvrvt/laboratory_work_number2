@@ -613,6 +613,6 @@ TEST(MinMaxAvgTest, AvgIsNotRounded) {
     int data[] = {1, 2};
     MutableArraySequence<int> seq(data, 2);
 
-    // avg = (1+2)/2 = 1.5 — проверяем что нет целочисленного округления
+    // avg = (1+2)/2 = 1.5 - проверяем что нет целочисленного округления
     EXPECT_DOUBLE_EQ(seq.GetAvg(), 1.5);
 }

@@ -400,7 +400,7 @@ TEST(SequencePolymorphism, ConcatArrayWithList) {
     Sequence<int>* arr  = new MutableArraySequence<int>(data1, 3);
     Sequence<int>* list = new MutableListSequence<int>(data2, 2);
 
-    // Concat принимает Sequence<T>* — тип реализации не важен
+    // Concat принимает Sequence<T>* - тип реализации не важен
     Sequence<int>* result = arr->Concat(list);
 
     EXPECT_EQ(result->GetLength(), 5);
@@ -689,7 +689,7 @@ TEST(ImmutableArraySequence, Concat_WithEmpty_ReturnsCopyOfNonEmpty) {
     EXPECT_EQ(result->GetLength(), 2);
     EXPECT_EQ(result->Get(0), 10);
     EXPECT_EQ(result->Get(1), 20);
-    // Результат — новый объект, не совпадает с seq1
+    // Результат - новый объект, не совпадает с seq1
     EXPECT_NE(result, &seq1);
 
     delete result;

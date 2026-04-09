@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <limits>
-#include <random>   // std::mt19937, std::uniform_int_distribution
+#include <random>   // std::mt19937, std::uniform_int_distribution для генерации случайных чисел
 #include <chrono>   // performance-тесты
 #include <iomanip>  // std::fixed, std::setprecision
 
@@ -18,16 +18,32 @@ void ClearInput() {
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
-int ReadInt( const std::string &prompt ) {
-    int value;
-    while (true) {
+// Реализован именно такой вариант ReadInt(), поскольку на семинаре Михаил Владиславович
+int ReadInt( const std::string& prompt ) {
+    while ( true ) {
         std::cout << prompt;
-        if (std::cin >> value) return value; //TODO переделать, нельзя делать if ( std::cin >> value )
-        std::cout << " [!] Введите целое число.\n";
-        ClearInput();
+        std::string line;
+        std::getline( std::cin, line );
+
+        // Пропускаем пустые строки
+        if ( line.empty() ) {
+            continue;
+        }
+
+        try {
+            size_t pos;
+            int value = std::stoi( line, &pos );
+            // Убеждаемся, что вся строка была числом (без лишних символов после числа)
+            if ( pos != line.length() ) {
+                throw std::invalid_argument( "trailing characters" );
+            }
+            return value;
+        } catch ( const std::exception& ) {
+            std::cout << " [!] Введите целое число.\n";
+            // Очистка потока не требуется, так как мы уже прочитали строку
+        }
     }
 }
-
 void PrintSequence( Sequence<int> *seq ) {
     std::cout << " Последовательность [" << seq->GetLength() << "]: [ ";
     for (int i = 0; i < seq->GetLength(); ++i) {
@@ -208,118 +224,122 @@ void BonusMenu( Sequence<int> *seq ) {
 // Меню Performance-тестов
 void PerformanceMenu() {
     std::cout << "\n";
-    std::cout << " |===========================================|\n";
-    std::cout << " |         Тесты производительности          |\n";
-    std::cout << " |===========================================|\n";
-    std::cout << " Выберите размер N (рекомендуется 100000 - 500000):\n";
-    int n = ReadInt(" N = ");
+    std::cout << "===============================================\n";
+    std::cout << "         Тесты производительности\n";
+    std::cout << "===============================================\n";
+    std::cout << "\nВыберите размер N (рекомендуется 100000 - 500000):\n";
+    int n = ReadInt("N = ");
     if (n <= 0) {
-        std::cout << " [!] N должно быть > 0\n";
+        std::cout << "[!] N должно быть > 0\n";
         return;
     }
 
-    using Clock = std::chrono::high_resolution_clock;
-    using Ms = std::chrono::duration<double, std::milli>;
+    // Вспомогательная лямбда для замера времени
+    auto measure = [&](const std::string& name, auto&& func) {
+        // [&] - захват всех переменных по ссылке,
+        // а auto&& fn универсальная ссылка (позволяет лямбде принимать любой вызываемый объект)
+        auto start = std::chrono::high_resolution_clock::now();
+        func();
+        auto end = std::chrono::high_resolution_clock::now();
+        double ms = std::chrono::duration<double, std::milli>(end - start).count();
+        std::cout << std::fixed << std::setprecision(2) << "   " << name << ": " << ms << " мс\n";
+    };
 
-    // auto measure = [&](const std::string& label, auto&& fn) {
-    //     auto t0 = Clock::now();
-    //     fn();
-    //     auto t1 = Clock::now();
-    //     std::cout << std::fixed << std::setprecision(2);
-    //     std::cout << "   " << label << ": " << std::chrono::duration_cast<Ms>( t1 - t0 ).count() << " мс\n";
-    // };
-    //
-    // std::cout << "\n -- 1. Append (добавление N элементов) ----------------------\n";
-    // measure("ArraySequence Append", [&]() {
-    //     MutableArraySequence<int> seq;
-    //     for (int i = 0; i < n; ++i) seq.Append(i);
-    // });
-    // measure("ListSequence  Append", [&]() {
-    //     MutableListSequence<int> seq;
-    //     for (int i = 0; i < n; ++i) seq.Append(i);
-    // });
-    //
-    // std::cout << "\n -- 2. Get (случайный доступ, N обращений) ------------------\n";
-    // {
-    //     MutableArraySequence<int> arr_seq;
-    //     MutableListSequence<int> lst_seq;
-    //     for (int i = 0; i < n; ++i) {
-    //         arr_seq.Append(i);
-    //         lst_seq.Append(i);
-    //     }
-    //     std::mt19937 rng(42);
-    //     std::uniform_int_distribution<int> dist(0, n - 1);
-    //     std::vector<int> indices(n);
-    //     for (auto& idx : indices) idx = dist(rng);
-    //
-    //     measure("ArraySequence Get  ", [&]() {
-    //         volatile int x = 0;
-    //         for (int idx : indices) x = arr_seq.Get(idx);
-    //         (void)x;
-    //     });
-    //     measure("ListSequence  Get  ", [&]() {
-    //         int limit = std::min(n, 1000);
-    //         volatile int x = 0;
-    //         for (int k = 0; k < limit; ++k) x = lst_seq.Get(indices[k]);
-    //         std::cout << "   (ListSequence Get — O(n), замерено только 1000 обращений)\n";
-    //         (void)x;
-    //     });
-    // }
-    //
-    // std::cout << "\n -- 3. Map (применить функцию к каждому элементу) -----------\n";
-    // {
-    //     MutableArraySequence<int> arr_seq;
-    //     MutableListSequence<int> lst_seq;
-    //     for (int i = 0; i < n; ++i) {
-    //         arr_seq.Append(i);
-    //         lst_seq.Append(i);
-    //     }
-    //     measure("ArraySequence Map  ", [&]() {
-    //         Sequence<int>* result = arr_seq.Map([](const int& x) { return x * 2; });
-    //         delete result;
-    //     });
-    //     measure("ListSequence  Map  ", [&]() {
-    //         Sequence<int>* result = lst_seq.Map([](const int& x) { return x * 2; });
-    //         delete result;
-    //     });
-    // }
-    //
-    // std::cout << "\n -- 4. Reduce (свёртка — сумма всех элементов) -------------\n";
-    // {
-    //     MutableArraySequence<int> arr_seq;
-    //     MutableListSequence<int> lst_seq;
-    //     for (int i = 0; i < n; ++i) {
-    //         arr_seq.Append(i);
-    //         lst_seq.Append(i);
-    //     }
-    //     measure("ArraySequence Reduce", [&]() {
-    //         volatile long long s = arr_seq.Reduce<long long>(
-    //             [](long long acc, const int& x) { return acc + x; }, 0LL);
-    //         (void)s;
-    //     });
-    //     measure("ListSequence  Reduce", [&]() {
-    //         volatile long long s = lst_seq.Reduce<long long>(
-    //             [](long long acc, const int& x) { return acc + x; }, 0LL);
-    //         (void)s;
-    //     });
-    // }
-    //
-    // std::cout << "\n ── 5. Immutable Append (N цепочных операций) ──────────────\n";
-    // std::cout << "   (каждый Append создаёт новый объект — ожидаемо медленнее)\n";
-    // {
-    //     int limit = std::min(n, 5000);
-    //     measure("ImmutableArraySeq Append (N=" + std::to_string(limit) + ")", [&]() {
-    //         Sequence<int>* seq = new ImmutableArraySequence<int>();
-    //         for (int i = 0; i < limit; ++i) {
-    //             Sequence<int>* next = seq->Append(i);
-    //             delete seq;
-    //             seq = next;
-    //         }
-    //         delete seq;
-    //     });
-    // }
-    //
-    // std::cout << "\n";
+    // 1. Append
+    std::cout << "\n-- 1. Append (добавление N элементов) -----------------\n";
+    measure("ArraySequence Append", [&]() {
+        MutableArraySequence<int> seq;
+        for (int i = 0; i < n; ++i) seq.Append(i);
+    });
+    measure("ListSequence  Append", [&]() {
+        MutableListSequence<int> seq;
+        for (int i = 0; i < n; ++i) seq.Append(i);
+    });
+
+    // 2. Get (случайный доступ)
+    std::cout << "\n-- 2. Get (случайный доступ, N обращений) ------------\n";
+    {
+        MutableArraySequence<int> arr_seq;
+        MutableListSequence<int> lst_seq;
+        for (int i = 0; i < n; ++i) {
+            arr_seq.Append(i);
+            lst_seq.Append(i);
+        }
+        // Генерируем случайные индексы
+        std::mt19937 rng(42);
+        std::uniform_int_distribution<int> dist(0, n - 1);
+        std::vector<int> indices(n);
+        for (int i = 0; i < n; ++i) indices[i] = dist(rng);
+
+        measure("ArraySequence Get", [&]() {
+            volatile int x = 0;
+            for (int idx : indices) x = arr_seq.Get(idx);
+            (void)x;
+        });
+        measure("ListSequence  Get", [&]() {
+            int limit = std::min(n, 1000);
+            volatile int x = 0;
+            for (int i = 0; i < limit; ++i) x = lst_seq.Get(indices[i]);
+            std::cout << "   (ListSequence Get — O(n), замерено только 1000 обращений)\n";
+            (void)x;
+        });
+    }
+
+    // 3. Map
+    std::cout << "\n-- 3. Map (применить функцию к каждому элементу) -----\n";
+    {
+        MutableArraySequence<int> arr_seq;
+        MutableListSequence<int> lst_seq;
+        for (int i = 0; i < n; ++i) {
+            arr_seq.Append(i);
+            lst_seq.Append(i);
+        }
+        measure("ArraySequence Map", [&]() {
+            Sequence<int>* res = arr_seq.Map([](int x) { return x * 2; });
+            delete res;
+        });
+        measure("ListSequence  Map", [&]() {
+            Sequence<int>* res = lst_seq.Map([](int x) { return x * 2; });
+            delete res;
+        });
+    }
+
+    // 4. Reduce (сумма)
+    std::cout << "\n-- 4. Reduce (свёртка — сумма всех элементов) -------\n";
+    {
+        MutableArraySequence<int> arr_seq;
+        MutableListSequence<int> lst_seq;
+        for (int i = 0; i < n; ++i) {
+            arr_seq.Append(i);
+            lst_seq.Append(i);
+        }
+        measure("ArraySequence Reduce", [&]() {
+            volatile long long sum = arr_seq.Reduce<long long>(
+                [](long long acc, int x) { return acc + x; }, 0LL);
+            (void)sum;
+        });
+        measure("ListSequence  Reduce", [&]() {
+            volatile long long sum = lst_seq.Reduce<long long>(
+                [](long long acc, int x) { return acc + x; }, 0LL);
+            (void)sum;
+        });
+    }
+
+    // 5. Immutable Append (цепочка операций)
+    std::cout << "\n-- 5. Immutable Append (каждый Append создаёт новый объект) --\n";
+    {
+        int limit = std::min(n, 5000);
+        measure("ImmutableArraySeq Append (N=" + std::to_string(limit) + ")", [&]() {
+            Sequence<int>* seq = new ImmutableArraySequence<int>();
+            for (int i = 0; i < limit; ++i) {
+                Sequence<int>* next = seq->Append(i);
+                delete seq;
+                seq = next;
+            }
+            delete seq;
+        });
+    }
+    std::cout << "\n";
 }
 
 // Меню операций над Sequence<int>
@@ -447,6 +467,8 @@ void BitSequenceMenu() {
     std::cout << "\n Введите биты (строка из 0 и 1, например 10110): ";
     std::string bits;
     std::cin >> bits;
+    // Очищаем буфер после cin, чтобы getline в ReadInt работал корректно
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
     BitSequence *seq = nullptr;
     try {
@@ -473,26 +495,26 @@ void BitSequenceMenu() {
 
         try {
             if (choice >= 1 && choice <= 3) {
-                std::cout << " Введите вторую последовательность (той же длины): ";
+                std::cout << " Введите вторую последовательность (можно другой длины, будет дополнена нулями слева): ";
                 std::string bits2;
                 std::cin >> bits2;
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 BitSequence other(bits2);
 
-                // result по значению, не указатель
                 BitSequence result;
-                if (choice == 1) result = seq->BitwiseAND(other);
-                else if (choice == 2) result = seq->BitwiseOR(other);
-                else result = seq->BitwiseXOR(other);
+                if (choice == 1)
+                    result = seq->BitwiseAND(other);
+                else if (choice == 2)
+                    result = seq->BitwiseOR(other);
+                else
+                    result = seq->BitwiseXOR(other);
 
                 std::cout << " Результат: ";
                 PrintBitSequence(&result);
-                // delete не нужен — объект на стеке, удалится сам
             } else if (choice == 4) {
-                // result по значению, не указатель
                 BitSequence result = seq->BitwiseNOT();
                 std::cout << " Результат NOT: ";
                 PrintBitSequence(&result);
-                // delete не нужен — объект на стеке, удалится сам
             } else if (choice == 0) {
                 break;
             } else {
