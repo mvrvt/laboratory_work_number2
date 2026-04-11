@@ -30,7 +30,7 @@ public:
     virtual T&           GetFirst()                           const = 0;
     virtual T&           GetLast()                            const = 0;
     virtual int         GetLength()                           const = 0;
-    virtual Sequence<T>* GetSubsequence( int start, int end ) const = 0; //TODO переделать под константную ссылку, иначе нужно объяснить почему это не так
+    virtual Sequence<T>* GetSubsequence( int start, int end ) const = 0; 
 
     // Оператор чтения: seq[i] вместо seq.Get( i )
     T operator[]( int index ) const {
@@ -52,7 +52,7 @@ public:
         Sequence<T>* result = CreateEmpty();
         for ( int idx = 0; idx < GetLength(); ++idx ) {
             Sequence<T>* next = result->Append( func( Get( idx ) ) );
-            if ( next != result ) delete result; // если immutable - удаляем старую копию //TODO вместо приседаний можно сделать append мутатор в sequence (переопределен в LS и AS)
+            if ( next != result ) delete result; // если immutable - удаляем старую копию 
             result = next;
         }
         return result;

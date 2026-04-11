@@ -14,21 +14,14 @@ protected:
     DynamicArray<T>* items_;
     int count_;
     // благодаря count_ реализован паттерн, в котором у ArraySequence имеется и size и capacity
-    // actual size ArraySequence - это ArraySequence::count_
+    // actual size ArraySequence - это ArraySequence::count_,
     // а actual capacity это DynamicArray::size_
 
-
-    //TODO здесь хранить size_ последовательности,
-
-    //TODO у ар сек есть свой сайз, который является
-    //TODO у dyn arr есть только size
-    // Ключевой метод паттерна mutable/immutable
-    // Mutable вернёт this, Immutable вернёт Clone()
     virtual ArraySequence<T>* Instance() = 0;
 
     ArraySequence<T>* AppendInternal( const T& item ) {
         if ( count_ >= static_cast<int>( items_->GetCount() ) ) {
-            // не хватает места — увеличиваем capacity (например, вдвое)
+            // не хватает места — увеличиваем capacity (вдвое)
             int new_cap = ( items_->GetCount() == 0 ) ? 1 : items_->GetCount() * 2;
             items_->Resize( new_cap );
         }
@@ -143,7 +136,7 @@ public:
 
     // Оператор записи: seq[i] = value, только для ArraySequence
     T& operator[]( int index ) {
-        if ( index < 0 || index >= count_ )       // ← добавь проверку
+        if ( index < 0 || index >= count_ )
             throw IndexOutOfRange("ArraySequence: index out of range");
         return ( *items_ )[index]; // делегируем DynamicArray, т.к. там уже имеется T& operator[]
     }

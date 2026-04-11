@@ -67,7 +67,7 @@ std::pair<Sequence<T1>*, Sequence<T2>*> Unzip( const Sequence<std::pair<T1, T2>>
 // Пустые сегменты в конце не добавляются (если последовательность заканчивается разделителем).
 // Пустые сегменты в середине (два разделителя подряд) сохраняются.
 // Пример: Split([1, 0, 2, 0, 3], x==0) == [[1], [2], [3]]
-//         Split([1, 0],           x==0) == [[1]]
+//         Split([1, 0],          x==0) == [[1]]
 template <typename T>
 Sequence<Sequence<T>*>* Split( Sequence<T>* seq, std::function<bool( const T& )> pred ) {
     if ( seq == nullptr )

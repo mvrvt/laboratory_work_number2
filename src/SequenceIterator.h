@@ -6,8 +6,8 @@
 template <class T>
 class SequenceIterator : public IEnumerator<T> {
 private:
-    Sequence<T>* seq_;   // указатель на любую последовательность
-    int          index_; // -1 = до первого элемента
+    Sequence<T>* seq_;    // указатель на любую последовательность
+    int          index_;  // -1 = до первого элемента
 
 public:
     explicit SequenceIterator( Sequence<T>* seq ) : seq_( seq ), index_( -1 ) { }

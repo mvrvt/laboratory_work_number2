@@ -152,6 +152,6 @@ public:
     ImmutableListSequence( const ListSequence<T>& other ) : ListSequence<T> ( other ) { }
 
     Sequence<T>* CreateEmpty() const override {
-        return new ImmutableListSequence<T>(); //TODO в Sequence объявить мутаторы
+        return new ImmutableListSequence<T>(); 
     }
 };
