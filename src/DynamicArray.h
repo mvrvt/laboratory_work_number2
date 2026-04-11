@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdexcept> // для ошибки out_of_range
-#include <cstddef> // для типа элементов size_t
+#include <cstddef>   // для типа элементов size_t
 #include <string>
 #include "ICollection.h"
 #include "IEnumerable.h"
