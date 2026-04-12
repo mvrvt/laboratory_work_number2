@@ -5,9 +5,6 @@
 #include "DynamicArray.h"
 #include "SequenceIterator.h"
 
-// forward declaration
-template <class T> class MutableArraySequence;
-
 template <class T>
 class ArraySequence : public Sequence<T> {
 protected:
@@ -175,4 +172,44 @@ public:
     }
 };
 
-#include "MutableArraySequence.h"
+//---------------------------------------------------------------------------------------
+template <class T>
+class MutableArraySequence : public ArraySequence<T> {
+protected:
+    // Возвращается изначальный, но уже измененный объект
+    ArraySequence<T>* Instance() override {
+        return this;
+    }
+
+public:
+    MutableArraySequence() : ArraySequence<T>() { }
+
+    MutableArraySequence( T* data, int count ) : ArraySequence<T>( data, count ) { }
+
+    MutableArraySequence( const ArraySequence<T>& other ) : ArraySequence<T>( other ) { }
+
+    Sequence<T>* CreateEmpty() const override {
+        return new MutableArraySequence<T>();
+    }
+};
+
+//----------------------------------------------------------------------------------------
+template <class T>
+class ImmutableArraySequence : public ArraySequence<T> {
+protected:
+    // Возвращается новый объект
+    ArraySequence<T>* Instance() override {
+        return new ImmutableArraySequence<T>( *this );
+    }
+
+public:
+    ImmutableArraySequence() : ArraySequence<T>() { }
+
+    ImmutableArraySequence( T* data, int count ) : ArraySequence<T>( data, count ) { }
+
+    ImmutableArraySequence( const ArraySequence<T>& other ) : ArraySequence<T>( other ) { }
+
+    Sequence<T>* CreateEmpty() const override {
+        return new ImmutableArraySequence<T>();
+    }
+};

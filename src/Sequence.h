@@ -29,7 +29,7 @@ public:
     // Декомпозиция
     virtual T&           GetFirst()                           const = 0;
     virtual T&           GetLast()                            const = 0;
-    virtual int         GetLength()                           const = 0;
+    virtual int          GetLength()                          const = 0;
     virtual Sequence<T>* GetSubsequence( int start, int end ) const = 0; 
 
     // Оператор чтения: seq[i] вместо seq.Get( i )

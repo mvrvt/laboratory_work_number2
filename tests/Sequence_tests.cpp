@@ -1,7 +1,5 @@
 #include <gtest/gtest.h>
 #include "../src/ArraySequence.h"
-#include "../src/MutableArraySequence.h"
-#include "../src/ImmutableArraySequence.h"
 #include "../src/ListSequence.h"
 
 // |==================================================================|

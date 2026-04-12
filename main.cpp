@@ -5,8 +5,6 @@
 #include <chrono>   // performance-тесты
 #include <iomanip>  // std::fixed, std::setprecision
 
-#include "MutableArraySequence.h"
-#include "ImmutableArraySequence.h"
 #include "ListSequence.h"
 #include "BitSequence.h"
 #include "Sequence_utils.h"  // Split, Slice, Range, GetPrefixes, GetPostfixes, SlidingAverage, Unzip

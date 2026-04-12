@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
 #include "../src/Sequence.h"
 #include "../src/Sequence_utils.h"
-#include "../src/MutableArraySequence.h"
-#include "../src/ImmutableArraySequence.h"
 #include "../src/ListSequence.h"
 
 // Map

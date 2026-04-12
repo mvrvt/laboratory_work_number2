@@ -1,7 +1,7 @@
 #pragma once
 
 #include <utility>
-#include "MutableArraySequence.h"
+#include "ArraySequence.h"
 
 // П-5: список всех префиксов через Reduce
 template <typename T>

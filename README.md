@@ -34,7 +34,7 @@
 
 #### 🔹 Базовые требования (обязательные)
 - Реализация `DynamicArray<T>`, `LinkedList<T>`, `Sequence<T>`
-- Два варианта `ArraySequence<T>` и `ListSequence<T>`: **mutable** и **immutable**
+- Два варианта `ArraySequence<T>` и `ListSequence<T>`: **mutable** и **immutable** (все типы ArraySeq и ListSeq находятся в этих же файлах, отдельных .h файлов с mutable/immutable вариантами нет)
 - `BitSequence` с побитовыми операциями AND, OR, XOR, NOT
 - Консольный UI для тестирования всех операций
 - Модульные тесты (Google Test)
@@ -70,8 +70,6 @@ lab_work_number2/
 | |-- LinkedList.h
 | |-- Sequence.h
 | |-- ArraySequence.h
-| |-- MutableArraySequence.h
-| |-- ImmutableArraySequence.h
 | |-- ListSequence.h
 | |-- SequenceIterator.h
 | |-- Sequence_utils.h – Split, Slice, Range, GetPrefixes, GetPostfixes, SlidingAverage, Unzip

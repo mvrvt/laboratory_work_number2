@@ -1,9 +1,8 @@
 #include <gtest/gtest.h>
 #include "../src/DynamicArray.h"
 #include "../src/LinkedList.h"
-#include "../src/MutableArraySequence.h"
-#include "../src/ImmutableArraySequence.h"
 #include "../src/ListSequence.h"
+#include "../src/ArraySequence.h"
 
 // ==================== DynamicArray::ArrayIterator ====================
 
