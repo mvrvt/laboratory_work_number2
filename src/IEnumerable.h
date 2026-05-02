@@ -7,5 +7,5 @@ class IEnumerable {
 public:
     virtual IEnumerator<T>* GetEnumerator() = 0; // создать и вернуть итератор
 
-    virtual ~IEnumerable() {}
+    virtual ~IEnumerable() = default;
 };

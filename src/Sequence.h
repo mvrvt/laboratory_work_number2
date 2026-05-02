@@ -32,9 +32,16 @@ public:
     virtual int          GetLength()                          const = 0;
     virtual Sequence<T>* GetSubsequence( int start, int end ) const = 0; 
 
-    // Оператор чтения: seq[i] вместо seq.Get( i )
-    T operator[]( int index ) const {
-        return Get( index );
+    const T& operator[]( int index ) const {
+        if ( index < 0 || static_cast<size_t>( index ) >= static_cast<size_t>( GetLength() ) )
+            throw IndexOutOfRange( "Sequence: index out of range" );
+        return Get( static_cast<size_t>( index ) );
+    }
+
+    T& operator[]( int index ) {
+        if ( index < 0 || static_cast<size_t>( index ) >= static_cast<size_t>( GetLength() ) )
+            throw IndexOutOfRange( "Sequence: index out of range" );
+        return Get( static_cast<size_t>( index ) );
     }
 
     // Операции
