@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <stdexcept>
+#include <utility>
 #include <algorithm>
 #include "DynamicArray.h"
 #include "ICollection.h"
