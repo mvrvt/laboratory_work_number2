@@ -7,16 +7,11 @@
 #include "ICollection.h"
 #include "IEnumerable.h"
 
-// forward declaration (нужен для GetPrefixes и GetPostfixes)
 template <class T> class MutableArraySequence;
 
 template <class T>
 class Sequence : public ICollection<T>, public IEnumerable<T> {
 public:
-    // GetEnumerator() унаследован от IEnumerable<T> как чисто виртуальный —
-    // каждый конкретный наследник (ArraySequence, ListSequence) обязан
-    // его переопределить через override.
-
     ~Sequence() override = default;
 
     // ICollection
@@ -26,11 +21,14 @@ public:
         return static_cast<std::size_t>(GetLength());
     }
 
+    // IEnumerable
+    virtual IEnumerator<T>* GetEnumerator() const override = 0;
+
     // Декомпозиция
     virtual T&           GetFirst()                           const = 0;
     virtual T&           GetLast()                            const = 0;
     virtual int          GetLength()                          const = 0;
-    virtual Sequence<T>* GetSubsequence( int start, int end ) const = 0; 
+    virtual Sequence<T>* GetSubsequence( int start, int end ) const = 0;
 
     const T& operator[]( int index ) const {
         if ( index < 0 || static_cast<size_t>( index ) >= static_cast<size_t>( GetLength() ) )
@@ -53,60 +51,69 @@ public:
     // Фабричный метод
     virtual Sequence<T>* CreateEmpty() const = 0;
 
-    // Map / Where / Reduce
-    // Реализованы один раз, но работают для всех наследников
-    Sequence<T>* Map( std::function<T( const T& )> func ) const {
-        Sequence<T>* result = CreateEmpty();
-        for ( int idx = 0; idx < GetLength(); ++idx ) {
-            Sequence<T>* next = result->Append( func( Get( idx ) ) );
-            if ( next != result ) delete result; // если immutable - удаляем старую копию 
-            result = next;
-        }
-        return result;
-    }
+    // ------------------------------------------------------------------
+    // Map / Where / Reduce (Оптимизированы через константные итераторы)
+    // ------------------------------------------------------------------
 
-    // M-2.2: MapIndexed
     Sequence<T>* MapIndexed( std::function<T( const T&, int )> func ) const {
         Sequence<T>* result = CreateEmpty();
-        for ( int idx = 0; idx < GetLength(); ++idx ) {
-            Sequence<T>* next = result->Append( func( Get( idx ), idx ) );
+        IEnumerator<T>* it = this->GetEnumerator(); // Без костылей!
+        int idx = 0;
+
+        while ( it->MoveNext() ) {
+            Sequence<T>* next = result->Append( func( it->Current(), idx++ ) );
             if ( next != result ) delete result;
             result = next;
         }
+        delete it;
         return result;
     }
 
-    // М-2.2 расширенный: MapIndexed с конвертацией типа Т -> T2
-    // Используется в П-6 (int -> double)
+    Sequence<T>* Map( std::function<T( const T& )> func ) const {
+        return MapIndexed( [func]( const T& val, int /*idx*/ ) {
+            return func( val );
+        });
+    }
+
     template <typename T2>
-    Sequence<T2>* MapIndexedTo( std::function<T2( const T&, int )> func ) const {
-        MutableArraySequence<T2>* result = new MutableArraySequence<T2>();
-        for ( int idx = 0; idx < GetLength(); ++idx ) {
-            result->Append( func( Get( idx ), idx ) );
+    Sequence<T2>* MapIndexedTo( std::function<T2( const T&, int )> func, const Sequence<T2>* prototype ) const {
+        Sequence<T2>* result = prototype->CreateEmpty();
+        IEnumerator<T>* it = this->GetEnumerator();
+        int idx = 0;
+
+        while ( it->MoveNext() ) {
+            Sequence<T2>* next = result->Append( func( it->Current(), idx++ ) );
+            if ( next != result ) delete result;
+            result = next;
         }
+        delete it;
         return result;
     }
 
     Sequence<T>* Where( std::function<bool( const T& )> predicate ) const {
         Sequence<T>* result = CreateEmpty();
-        for ( int idx = 0; idx < GetLength(); ++idx ) {
-            if ( predicate( Get( idx ) ) ) {
-                Sequence<T>* next = result->Append( Get( idx ) );
+        IEnumerator<T>* it = this->GetEnumerator();
+
+        while ( it->MoveNext() ) {
+            if ( predicate( it->Current() ) ) {
+                Sequence<T>* next = result->Append( it->Current() );
                 if ( next != result ) delete result;
                 result = next;
             }
         }
+        delete it;
         return result;
     }
 
-    // Reduce может возвращать другой тип (Т2) - поэтому template-метод
-    // Например: Sequence<int> -> Reduce -> double (среднее)
     template <class T2>
     T2 Reduce( std::function<T2( T2, const T& )> func, T2 initial ) const {
         T2 result = initial;
-        for ( int idx = 0; idx < GetLength(); ++idx ) {
-            result = func( result, Get( idx ) );
+        IEnumerator<T>* it = this->GetEnumerator();
+
+        while ( it->MoveNext() ) {
+            result = func( result, it->Current() );
         }
+        delete it;
         return result;
     }
 
@@ -117,7 +124,6 @@ public:
         });
     }
 
-    // М-2.1: пропустить первые count элементов
     Sequence<T>* Skip( int count ) const {
         if ( count < 0 )
             throw std::invalid_argument( "Sequence: Skip count < 0" );
@@ -126,7 +132,6 @@ public:
         return GetSubsequence( count, GetLength() - 1 );
     }
 
-    // M-2.1: взять первые count элементов
     Sequence<T>* Take( int count ) const {
         if ( count < 0 )
             throw std::invalid_argument( "Sequence: Take count < 0" );
@@ -136,45 +141,54 @@ public:
         return GetSubsequence( 0, actual - 1 );
     }
 
-    // M-2.1: FlatMap — каждый элемент превращается в подпоследовательность,
-    // все подпоследовательности склеиваются в одну
-    // Возвращает MutableArraySequence<T2> (т.к. тип T2 отличается от T,
-    // нельзя использовать CreateEmpty())
     template <typename T2>
-    Sequence<T2>* FlatMap( std::function<Sequence<T2>*( const T& )> func ) const {
-        MutableArraySequence<T2>* result = new MutableArraySequence<T2>();
+    Sequence<T2>* FlatMap( std::function<Sequence<T2>*( const T& )> func, const Sequence<T2>* prototype ) const {
+        Sequence<T2>* result = prototype->CreateEmpty();
+        IEnumerator<T>* it = this->GetEnumerator();
+
         try {
-            for ( int idx = 0; idx < GetLength(); ++idx ) {
-                Sequence<T2>* part = func( Get( idx ) );
+            while ( it->MoveNext() ) {
+                Sequence<T2>* part = func( it->Current() );
                 try {
-                    for ( int j = 0; j < part->GetLength(); ++j ) {
-                        result->Append( part->Get( j ) );
+                    IEnumerator<T2>* partIt = part->GetEnumerator();
+                    while ( partIt->MoveNext() ) {
+                        Sequence<T2>* next = result->Append( partIt->Current() );
+                        if ( next != result ) delete result;
+                        result = next;
                     }
+                    delete partIt;
                 } catch ( ... ) {
-                    delete part; // удаляем part, если при копировании что-то пошло не так
+                    delete part;
                     throw;
                 }
                 delete part;
             }
         } catch ( ... ) {
-            delete result; // удаляем накопленный результат
-            throw;         // пробрасываем значение дальше
+            delete result;
+            throw;
         }
+        delete it;
         return result;
     }
 
-
-    // M-2.1: Zip — соединяет this и other в список пар
-    // Длина результата = min(len(this), len(other))
     template <typename T2>
-    Sequence<std::pair<T, T2>>* Zip( const Sequence<T2>* other ) const {
+    Sequence<std::pair<T, T2>>* Zip( const Sequence<T2>* other, const Sequence<std::pair<T, T2>>* prototype ) const {
         if ( other == nullptr )
             throw std::invalid_argument( "Sequence: Zip other is empty(nullptr)" );
-        int len = std::min( GetLength(), other->GetLength() );
-        MutableArraySequence<std::pair<T, T2>>* result = new MutableArraySequence<std::pair<T, T2>>();
-        for ( int idx = 0; idx < len; ++idx ) {
-            result->Append( { Get( idx ), other->Get( idx ) } );
+
+        Sequence<std::pair<T, T2>>* result = prototype->CreateEmpty();
+
+        IEnumerator<T>* it1 = this->GetEnumerator();
+        IEnumerator<T2>* it2 = other->GetEnumerator();
+
+        while ( it1->MoveNext() && it2->MoveNext() ) {
+            Sequence<std::pair<T, T2>>* next = result->Append( { it1->Current(), it2->Current() } );
+            if ( next != result ) delete result;
+            result = next;
         }
+
+        delete it1;
+        delete it2;
         return result;
     }
 
@@ -195,16 +209,19 @@ public:
         MinMaxAvg initial = { first, first, 0.0, 0 };
 
         return Reduce<MinMaxAvg>(
-            []( MinMaxAvg result, const T& value ) {
-                if ( value < result.min ) { result.min = value; }
-                if ( value > result.max ) { result.max = value; }
-                result.sum += static_cast<double>( value );
-                ++result.count;
-                return result;
-            },
+            std::function<MinMaxAvg(MinMaxAvg, const T&)>(
+                []( MinMaxAvg result, const T& value ) -> MinMaxAvg {
+                    if ( value < result.min ) { result.min = value; }
+                    if ( value > result.max ) { result.max = value; }
+                    result.sum += static_cast<double>( value );
+                    ++result.count;
+                    return result;
+                }
+            ),
             initial
         );
     }
+
     double GetAvg() const {
         auto r = GetMinMaxAvg();
         return r.sum / r.count;

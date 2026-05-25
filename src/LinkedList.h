@@ -51,15 +51,14 @@ public:
     // Это O(n) в сумме, в отличие от Get(Index), который был бы O(n^2)
     class ListIterator : public IEnumerator<T> {
     private:
-        Node* current_; // текущий узел (nullptr = позиция до начала)
-        Node* head_;    // голова списка (нужна для Reset)
+        const Node* current_; // Указатели теперь const
+        const Node* head_;
 
     public:
-        explicit ListIterator( Node* head ) : head_( head ), current_( nullptr ) { }
+        explicit ListIterator( const Node* head ) : head_( head ), current_( nullptr ) { }
 
         bool MoveNext() override {
             if ( current_ == nullptr ) {
-                // Первый вызов - переход к голове
                 current_ = head_;
             } else {
                 current_ = current_->next;
@@ -67,19 +66,18 @@ public:
             return current_ != nullptr;
         }
 
-        T& Current() override {
+        const T& Current() const override {
             if ( current_ == nullptr )
                 throw IndexOutOfRange( "ListIterator: no current element" );
             return current_->data;
         }
 
         void Reset() override {
-            current_ = nullptr; // обнуляем, не head_ - позиция перед первым
+            current_ = nullptr;
         }
     };
-    //======================================================================
 
-    IEnumerator<T>* GetEnumerator() override {
+    IEnumerator<T>* GetEnumerator() const override {
         return new ListIterator( head_ );
     }
 

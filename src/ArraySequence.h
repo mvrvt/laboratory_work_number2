@@ -20,7 +20,7 @@ public:
     }
 
     // IEnumerator
-    IEnumerator<T>* GetEnumerator() override {
+    IEnumerator<T>* GetEnumerator() const override {
         return new SequenceIterator<T>( this );
     }
 

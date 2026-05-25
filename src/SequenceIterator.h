@@ -6,18 +6,18 @@
 template <class T>
 class SequenceIterator : public IEnumerator<T> {
 private:
-    Sequence<T>* seq_;    // указатель на любую последовательность
-    int          index_;  // -1 = до первого элемента
+    const Sequence<T>* seq_;
+    int                index_;
 
 public:
-    explicit SequenceIterator( Sequence<T>* seq ) : seq_( seq ), index_( -1 ) { }
+    explicit SequenceIterator( const Sequence<T>* seq ) : seq_( seq ), index_( -1 ) { }
 
     bool MoveNext() override {
         ++index_;
         return index_ < seq_->GetLength();
     }
 
-    T& Current() override {
+    const T& Current() const override {
         if ( index_ < 0 || index_ >= seq_->GetLength() )
             throw IndexOutOfRange( "SequenceIterator: index out of range" );
         return seq_->Get( index_ );

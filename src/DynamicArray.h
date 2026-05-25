@@ -18,18 +18,18 @@ public:
     // Встроенный класс-итератор
     class ArrayIterator : public IEnumerator<T> {
     private:
-        DynamicArray<T>& arr_;
+        const DynamicArray<T>& arr_; // Теперь const
         int index_;
 
     public:
-        explicit ArrayIterator( DynamicArray<T>& arr ) : arr_( arr ), index_( -1 ) { }
+        explicit ArrayIterator( const DynamicArray<T>& arr ) : arr_( arr ), index_( -1 ) { }
 
         bool MoveNext() override {
             ++index_;
             return index_ < static_cast<int>( arr_.GetCount() );
         }
 
-        T& Current() override {
+        const T& Current() const override {
             if ( index_ < 0 || index_ >= static_cast<int>( arr_.GetCount() ) )
                 throw IndexOutOfRange( "ArrayIterator: index out of range" );
             return arr_.Get( static_cast<std::size_t>( index_ ) );
@@ -40,8 +40,8 @@ public:
         }
     };
 
-    // Фабричный метод — создаёт итератор для этого массива
-    IEnumerator<T>* GetEnumerator() override {
+    // Метод стал const
+    IEnumerator<T>* GetEnumerator() const override {
         return new ArrayIterator( *this );
     }
 

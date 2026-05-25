@@ -98,10 +98,11 @@ void BonusMenu( Sequence<int> *seq ) {
             if (choice == 1) {
                 // FlatMap: каждый элемент x → [x, -x]
                 std::cout << " FlatMap: каждый x → [x, -x]\n";
+                MutableArraySequence<int> proto;
                 Sequence<int> *result = seq->FlatMap<int>([]( const int &x ) -> Sequence<int> * {
                     int pair[] = {x, -x};
                     return new MutableArraySequence<int>(pair, 2);
-                });
+                }, &proto);
                 std::cout << " Результат: ";
                 PrintSequence(result);
                 delete result;
@@ -113,7 +114,8 @@ void BonusMenu( Sequence<int> *seq ) {
                     int val = ReadInt(" Элемент " + std::to_string(i) + ": ");
                     other.Append(val);
                 }
-                auto *zipped = seq->Zip<int>(&other);
+                MutableArraySequence<std::pair<int, int>> protoZip;
+                auto *zipped = seq->Zip<int>(&other, &protoZip);
                 std::cout << " Результат Zip [" << zipped->GetLength() << " пар]:\n";
                 for (int i = 0; i < zipped->GetLength(); ++i) {
                     std::cout << "   (" << zipped->Get(i).first

@@ -308,12 +308,15 @@ TEST(FlatMapTests, FlatMap_EachElementToTwoElements) {
     int data[] = {1, 2, 3};
     MutableArraySequence<int> seq(data, 3);
 
+    // Добавляем прототип!
+    MutableArraySequence<int> proto;
+
     // Каждый элемент x → [x, x*10]
     Sequence<int> *result = seq.FlatMap<int>(
         []( const int &x ) -> Sequence<int> * {
             int pair[] = {x, x * 10};
             return new MutableArraySequence<int>(pair, 2);
-        });
+        }, &proto);
 
     EXPECT_EQ(result->GetLength(), 6);
     EXPECT_EQ(result->Get(0), 1);
@@ -327,6 +330,9 @@ TEST(FlatMapTests, FlatMap_EmptyInnerSequence_Flattens) {
     int data[] = {1, 2, 3};
     MutableArraySequence<int> seq(data, 3);
 
+    // Добавляем прототип!
+    MutableArraySequence<int> proto;
+
     // Нечётные пропускаем, чётные дублируем
     Sequence<int> *result = seq.FlatMap<int>(
         []( const int &x ) -> Sequence<int> * {
@@ -335,7 +341,7 @@ TEST(FlatMapTests, FlatMap_EmptyInnerSequence_Flattens) {
                 return new MutableArraySequence<int>(pair, 2);
             }
             return new MutableArraySequence<int>();
-        });
+        }, &proto);
 
     EXPECT_EQ(result->GetLength(), 2); // только 2 → [2, 2]
     EXPECT_EQ(result->Get(0), 2);
@@ -351,7 +357,9 @@ TEST(ZipTests, Zip_EqualLength) {
     MutableArraySequence<int> seqA(a, 3);
     MutableArraySequence<std::string> seqB(b, 3);
 
-    auto *result = seqA.Zip<std::string>(&seqB);
+    // Добавляем прототип для Zip!
+    MutableArraySequence<std::pair<int, std::string>> protoZip;
+    auto *result = seqA.Zip<std::string>(&seqB, &protoZip);
 
     EXPECT_EQ(result->GetLength(), 3);
     EXPECT_EQ(result->Get(0).first, 1);
@@ -366,7 +374,9 @@ TEST(ZipTests, Zip_DifferentLength_TakesShorter) {
     MutableArraySequence<int> seqA(a, 5);
     MutableArraySequence<int> seqB(b, 2);
 
-    auto *result = seqA.Zip<int>(&seqB);
+    // Добавляем прототип для Zip!
+    MutableArraySequence<std::pair<int, int>> protoZip;
+    auto *result = seqA.Zip<int>(&seqB, &protoZip);
 
     EXPECT_EQ(result->GetLength(), 2);
     delete result;
@@ -378,7 +388,10 @@ TEST(UnzipTests, Unzip_RestoresOriginals) {
     MutableArraySequence<int> seqA(a, 3);
     MutableArraySequence<int> seqB(b, 3);
 
-    auto *zipped = seqA.Zip<int>(&seqB);
+    // Добавляем прототип для Zip!
+    MutableArraySequence<std::pair<int, int>> protoZip;
+    auto *zipped = seqA.Zip<int>(&seqB, &protoZip);
+
     auto [first, second] = Unzip(zipped);
 
     EXPECT_EQ(first->Get(0), 1);

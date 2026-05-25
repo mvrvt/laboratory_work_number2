@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <cstdint>
 #include "Sequence.h"
 #include "DynamicArray.h"
 #include "SequenceIterator.h"
@@ -292,7 +293,7 @@ public:
     const DynamicArray<uint8_t>& GetRawBytes() const { return bytes_; }
 
     // IEnumerator (итератор)
-    IEnumerator<Bit>* GetEnumerator() override {
+    IEnumerator<Bit>* GetEnumerator() const override {
         return new SequenceIterator<Bit>(this);
     }
 };

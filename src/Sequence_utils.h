@@ -154,6 +154,7 @@ Sequence<double>* SlidingAverage( const Sequence<T>* seq ) {
     if ( n < 2 )
         throw std::invalid_argument( "SlidingAverage: needs at least 2 elements" );
 
+    MutableArraySequence<double> proto; // Создаем объект-прототип на стеке
     return seq->template MapIndexedTo<double>(
         [seq, n]( const T& val, int idx ) -> double {
             if ( idx == 0 )
@@ -161,6 +162,7 @@ Sequence<double>* SlidingAverage( const Sequence<T>* seq ) {
             if ( idx == n - 1 )
                 return ( static_cast<double>( seq->Get( n - 2 ) ) + val ) / 2.0;
             return ( static_cast<double>( seq->Get( idx - 1 ) ) + val + seq->Get( idx + 1 ) ) / 3.0;
-        }
+        },
+        &proto // Передаем адрес прототипа
     );
 }
